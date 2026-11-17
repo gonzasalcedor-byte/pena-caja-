@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#6b3f22">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Caja Peña">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<title>Caja · Peña Folclórica</title>
+<style>
+:root{--bg:#efe3cc;--card:#fbf5e9;--ink:#2a1a10;--muted:#7a5f48;--line:#dcc9a8;--terra:#9e2a1e;--terra-d:#5c1a10;--mostaza:#c9902c;--verde:#4d6b3a;--rojo:#a3271c;--soft:#ead9bb;--cuero:#6b3f22;
+--guarda:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Crect width='40' height='16' fill='%23f3e6cc'/%3E%3Cpath d='M0 8 L8 0 L16 8 L8 16Z' fill='%239e2a1e'/%3E%3Cpath d='M20 8 L28 0 L36 8 L28 16Z' fill='%232a1a10'/%3E%3Cpath d='M8 4 L12 8 L8 12 L4 8Z' fill='%23f3e6cc'/%3E%3Cpath d='M28 4 L32 8 L28 12 L24 8Z' fill='%23c9902c'/%3E%3Crect width='40' height='1.5' fill='%232a1a10'/%3E%3Crect y='14.5' width='40' height='1.5' fill='%232a1a10'/%3E%3C/svg%3E")}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px;overscroll-behavior:none}
+.serif{font-family:Georgia,"Times New Roman",serif}
+#app{display:flex;flex-direction:column;height:100dvh;padding-bottom:env(safe-area-inset-bottom)}
+header{background:var(--cuero);color:#fbf0dc;padding:calc(6px + env(safe-area-inset-top)) 10px 6px;display:flex;align-items:center;gap:8px}
+header h1{font:700 15px Georgia,serif;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:42vw}
+.guarda{height:12px;background:var(--guarda) repeat-x;background-size:30px 12px;flex:0 0 auto}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:4px 9px;white-space:nowrap}
+.pill.on{background:#dfeedd;color:#2f5a2b}.pill.off{background:#f6dcdc;color:#8a2626}
+.hbtn{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:8px;padding:7px 10px;font-weight:700;font-size:13px}
+.sp{flex:1}
+main{flex:1;min-height:0;display:flex;flex-direction:column;padding:8px 10px 0}
+.ptop{display:flex;gap:6px;align-items:center;flex-wrap:wrap;margin-bottom:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-weight:700;font-size:13px}
+.chip.on{background:var(--cuero);color:#fff;border-color:var(--cuero)}
+.chip.liq.on{background:var(--mostaza);border-color:var(--mostaza);color:var(--ink)}
+.pstep{display:none;flex:1;min-height:0;flex-direction:column}
+.pstep.on{display:flex}
+.pgrid{flex:1;min-height:0;overflow:auto;display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));grid-auto-rows:minmax(120px,auto);gap:10px;padding:2px 2px 8px;align-content:start}
+@media(max-width:520px){.pgrid{grid-template-columns:repeat(2,1fr)}}
+.pbtn{background:#fffaf0;border:2px solid #d8c29a;box-shadow:0 3px 0 #d8c29a;border-radius:14px;padding:10px 6px;text-align:center;user-select:none;-webkit-user-select:none;position:relative;display:flex;flex-direction:column;justify-content:center;cursor:pointer}
+.pbtn:active{transform:translateY(2px);box-shadow:0 1px 0 #d8c29a}
+.pbtn.has{border-color:var(--terra);background:#fff3e6}
+.pbtn.out{opacity:.45}
+.pbtn .nm{font-weight:800;font-size:15px;line-height:1.15}
+.pbtn .un{font-size:11px;color:var(--muted)}
+.pbtn .pr{font:800 21px Georgia,serif;color:var(--terra);margin-top:4px}
+.liq .pbtn .pr{color:#9a6a12}
+.pbtn .st{font-size:11px;color:var(--muted);margin-top:2px}
+.pbtn .q{position:absolute;top:6px;right:6px;background:var(--terra);color:#fff;border-radius:20px;min-width:30px;height:30px;font-size:16px;font-weight:800;display:none;align-items:center;justify-content:center;padding:0 7px}
+.pbtn .mn{position:absolute;top:6px;left:6px;width:32px;height:32px;border-radius:50%;border:2px solid var(--terra);background:#fff;color:var(--terra);font:800 20px sans-serif;display:none;align-items:center;justify-content:center;line-height:1}
+.pbtn.has .q,.pbtn.has .mn{display:flex}
+.pbar{display:flex;align-items:center;gap:10px;background:var(--ink);color:#fff;border-radius:14px;padding:10px 12px;margin:6px 0 10px}
+.pbar .t{font:800 30px Georgia,serif;line-height:1}
+.pbar .c{font-size:12px;opacity:.75;max-height:32px;overflow:hidden}
+.btn{border:0;border-radius:10px;padding:10px 14px;font-weight:800;font-size:14px;background:var(--terra);color:#fff;box-shadow:0 2px 0 var(--terra-d);cursor:pointer}
+.btn.sec{background:var(--soft);color:var(--ink);box-shadow:0 2px 0 #cdb58c}
+.btn.ok{background:var(--verde);box-shadow:0 2px 0 #34492a}
+.btn.go{background:var(--mostaza);color:var(--ink);box-shadow:none;padding:15px 18px;font-size:17px}
+.btn:disabled{opacity:.4}
+.cobro{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1.1fr;gap:10px}
+@media(max-width:700px){.cobro{grid-template-columns:1fr;grid-template-rows:auto 1fr}}
+.resumen{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:8px 12px;overflow:auto;min-height:0;max-height:38dvh}
+@media(min-width:701px){.resumen{max-height:none}}
+.li{display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.bigtot{font:800 44px Georgia,serif;color:var(--terra-d);text-align:center;line-height:1.1;margin:2px 0}
+.paybox{display:flex;flex-direction:column;gap:8px;min-height:0;overflow:auto}
+.medios{display:grid;grid-template-columns:repeat(4,1fr);gap:6px}
+.medios button{border:2px solid var(--line);background:#fff;border-radius:12px;padding:10px 2px;font-weight:800;font-size:12px;color:var(--ink)}
+.medios button b{display:block;font-size:20px}
+.medios button.on{border-color:var(--cuero);background:var(--cuero);color:#fff}
+.billetes{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.billetes button{border:2px solid #cfe0c8;background:#f3f8f0;border-radius:10px;padding:11px 2px;font:800 16px Georgia,serif;color:var(--ink)}
+.billetes button.on{background:var(--verde);border-color:var(--verde);color:#fff}
+input,select{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:10px;background:#fff;color:var(--ink);width:100%}
+.vuelto{border-radius:12px;padding:8px;text-align:center;background:#dfeedd}
+.vuelto b{font:800 36px Georgia,serif;display:block;line-height:1.1}
+.vuelto.neg{background:#f6dcdc}.vuelto.na{background:var(--soft)}
+.pfoot{display:flex;gap:10px;margin:8px 0 10px}
+.pfoot .btn{padding:15px;font-size:17px}
+.done{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:8px}
+.done .okc{width:80px;height:80px;border-radius:50%;background:var(--verde);color:#fff;font-size:46px;display:flex;align-items:center;justify-content:center}
+.hint{font-size:12px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(30,20,10,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.on{display:flex}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:92dvh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sheet h2{font:800 19px Georgia,serif;margin:0;color:var(--terra-d)}
+table{width:100%;border-collapse:collapse}
+th,td{padding:6px 4px;border-bottom:1px solid var(--line);text-align:left;font-size:13px}
+th{font-size:11px;color:var(--muted);text-transform:uppercase}
+td.n,th.n{text-align:right;white-space:nowrap}
+.kpis{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:10px 0}
+.kpi{background:#fff;border:1px solid var(--line);border-left:4px solid var(--terra);border-radius:10px;padding:8px 10px}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+.kpi .v{font:800 20px Georgia,serif}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:70;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px}
+.warn{background:#fff7e8;border:1px dashed var(--mostaza);border-radius:10px;padding:10px;font-size:13px;margin:8px 0}
+.menu button{display:block;width:100%;text-align:left;margin:6px 0}
+</style>
+</head>
+<body>
+<div id="app">
+  <header>
+    <h1>🎸 Caja <span id="h-caja"></span></h1>
+    <span class="pill" id="h-net"></span>
+    <div class="sp"></div>
+    <button class="hbtn" onclick="sync(true)" id="h-sync">⟳</button>
+    <button class="hbtn" onclick="openCierre()">📋</button>
+    <button class="hbtn" onclick="openMenu()">☰</button>
+  </header>
+  <div class="guarda"></div>
+  <main>
+    <div class="ptop">
+      <div class="chips" id="c-dia"></div>
+      <button class="chip liq" id="c-liq" onclick="toggleLiq()"></button>
+    </div>
+
+    <div class="empty" id="p0" style="display:none">
+      <div style="font-size:40px">📡</div>
+      <b>Todavía no hay platos cargados en este teléfono.</b>
+      <div class="hint">Conectate a internet una vez y tocá "Sincronizar" para bajar los platos y precios de la planilla.</div>
+      <button class="btn" onclick="sync(true)">⟳ Sincronizar ahora</button>
+    </div>
+
+    <div class="pstep" id="p1">
+      <div id="c-wrap" style="flex:1;min-height:0;display:flex"><div class="pgrid" id="c-grid" style="width:100%"></div></div>
+      <div class="pbar">
+        <button class="btn sec" style="background:#4a3426;color:#fff;box-shadow:none" onclick="clearCart()">Vaciar</button>
+        <div class="sp"><div class="c" id="c-items"></div><div class="t" id="c-total">$ 0</div></div>
+        <button class="btn go" id="c-next" onclick="goStep(2)">Cobrar →</button>
+      </div>
+    </div>
+
+    <div class="pstep" id="p2">
+      <div class="cobro">
+        <div class="resumen">
+          <div class="hint" style="text-align:center">Total a cobrar</div>
+          <div class="bigtot" id="c-total2"></div>
+          <div id="c-res"></div>
+        </div>
+        <div class="paybox">
+          <div class="medios" id="c-medio"></div>
+          <div id="c-efvo">
+            <div class="hint" style="margin-bottom:4px">Paga con</div>
+            <div class="billetes" id="c-paga"></div>
+            <input type="number" inputmode="numeric" id="c-otro" placeholder="Otro importe…" style="margin-top:6px">
+          </div>
+          <div class="vuelto" id="c-vuelto"></div>
+        </div>
+      </div>
+      <div class="pfoot">
+        <button class="btn sec" style="flex:1" onclick="goStep(1)">← Volver</button>
+        <button class="btn ok" style="flex:2" id="c-conf" onclick="cobrar()">✔ Confirmar cobro</button>
+      </div>
+    </div>
+
+    <div class="pstep" id="p3">
+      <div class="done">
+        <div class="okc">✓</div>
+        <h2 class="serif" id="d-tit" style="margin:0;color:var(--terra-d)"></h2>
+        <div class="bigtot" id="d-tot"></div>
+        <div class="vuelto" id="d-vuelto" style="min-width:260px"></div>
+        <div class="hint" id="d-save"></div>
+        <button class="btn" style="padding:16px 28px;font-size:18px;margin-top:6px" onclick="nuevo()">🧾 Nuevo pedido</button>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- Configuración inicial -->
+<div class="modal" id="m-setup"><div class="sheet">
+  <h2>⚙️ Configurar esta caja</h2>
+  <p class="hint">Se hace una sola vez por teléfono, con señal.</p>
+  <label>Caja</label>
+  <div class="chips" id="s-caja"></div>
+  <label>Nombre de quien cobra</label>
+  <input id="s-cajero" placeholder="Ej: María">
+  <label>Dirección del conector (URL del Apps Script)</label>
+  <input id="s-api" placeholder="https://script.google.com/macros/s/…/exec">
+  <div class="warn" id="s-warn" style="display:none"></div>
+  <div class="row" style="margin-top:14px"><button class="btn" style="flex:1;padding:14px" onclick="saveSetup()">Guardar y sincronizar</button><button class="btn sec" id="s-cancel" onclick="closeM('m-setup')">Cancelar</button></div>
+</div></div>
+
+<!-- Cierre -->
+<div class="modal" id="m-cierre"><div class="sheet">
+  <div class="row"><h2>📋 Cierre · <span id="ci-tit"></span></h2><div class="sp"></div><button class="btn sec" onclick="closeM('m-cierre')">✕</button></div>
+  <div class="hint">Ventas de este teléfono. El total de las dos cajas se ve en la planilla.</div>
+  <div class="kpis" id="ci-kpis"></div>
+  <table id="ci-plato"></table>
+  <div class="warn">
+    <b>Arqueo de efectivo</b>
+    <label>Efectivo contado en la caja $</label>
+    <input type="number" inputmode="numeric" id="ci-cont">
+    <div id="ci-dif" style="margin-top:6px;font-weight:700"></div>
+    <label>Observaciones</label>
+    <input id="ci-obs" placeholder="Ej: faltó cambio, retiro parcial…">
+    <button class="btn ok" style="width:100%;margin-top:10px" onclick="enviarCierre()">Guardar cierre</button>
+    <div class="hint" id="ci-estado" style="margin-top:6px"></div>
+  </div>
+  <h3 class="serif" style="margin:14px 0 4px;color:var(--terra-d)">Tickets</h3>
+  <table id="ci-tk"></table>
+</div></div>
+
+<!-- Menú -->
+<div class="modal" id="m-menu"><div class="sheet menu">
+  <div class="row"><h2>☰ Opciones</h2><div class="sp"></div><button class="btn sec" onclick="closeM('m-menu')">✕</button></div>
+  <div class="hint" id="mn-info" style="margin:8px 0"></div>
+  <button class="btn sec" onclick="sync(true)">⟳ Sincronizar ahora</button>
+  <button class="btn sec" onclick="descargar()">💾 Descargar respaldo de ventas (CSV)</button>
+  <button class="btn sec" onclick="openSetup()">⚙️ Cambiar caja / cajero / conector</button>
+  <button class="btn sec" onclick="openReset()">🗑 Borrar datos de prueba de este teléfono</button>
+</div></div>
+
+<!-- Confirmación genérica -->
+<div class="modal" id="m-conf"><div class="sheet">
+  <h2 id="cf-tit"></h2>
+  <p id="cf-txt"></p>
+  <input id="cf-in" style="display:none">
+  <div class="row" style="margin-top:12px"><button class="btn sec" style="flex:1" onclick="closeM('m-conf')">Cancelar</button><button class="btn" style="flex:1" id="cf-ok">Confirmar</button></div>
+</div></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ================= Estado y almacenamiento local =================
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=n=>'$ '+Math.round(n||0).toLocaleString('es-AR');
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+          set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast('⚠️ No se pudo guardar en el teléfono');return false}}};
+let CFG=LS.get('pena_cfg',null);          // {caja,cajero,api}
+let DATA=LS.get('pena_data',null);        // {platos,reb,dia1,dia2,seq,lastSync}
+let TK=LS.get('pena_tickets',[]);         // tickets de este teléfono
+let SEQ=LS.get('pena_seq',{});            // último N° por caja-día (nunca se reinicia)
+let CI=LS.get('pena_cierres',[]);         // cierres de este teléfono
+const st={step:1,cart:{},dia:LS.get('pena_dia','Día 1'),liq:false,medio:'Efectivo',paga:null,syncing:false};
+function save(){LS.set('pena_tickets',TK);LS.set('pena_seq',SEQ);LS.set('pena_cierres',CI);LS.set('pena_data',DATA);LS.set('pena_cfg',CFG);LS.set('pena_dia',st.dia)}
+if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+
+// Parámetros por link: ?caja=C1&api=https://...
+(function(){const q=new URLSearchParams(location.search);if(q.get('api')||q.get('caja')){
+  CFG=Object.assign({caja:'C1',cajero:'',api:''},CFG||{});
+  if(q.get('caja'))CFG.caja=q.get('caja').toUpperCase(); if(q.get('api'))CFG.api=q.get('api');
+  LS.set('pena_cfg',CFG); history.replaceState(null,'',location.pathname);
+  if(!CFG.cajero) setTimeout(openSetup,50);
+}})();
+
+const platos=()=>(DATA&&DATA.platos)||[];
+const precio=p=>st.liq?p.precioLiq:p.precio;
+const pendientes=()=>TK.filter(t=>!t.synced).length+CI.filter(c=>!c.synced).length;
+function quedan(p){
+  const local=TK.filter(t=>!t.synced&&!t.anulado).reduce((a,t)=>a+t.items.filter(i=>i.id===p.id).reduce((b,i)=>b+i.q,0),0);
+  return p.rinde?p.rinde-(p.vendidas||0)-local:null;
+}
+const cartItems=()=>Object.entries(st.cart).filter(([,q])=>q>0).map(([id,q])=>({p:platos().find(x=>x.id===id),q})).filter(x=>x.p);
+const cartTotal=()=>cartItems().reduce((a,{p,q})=>a+q*precio(p),0);
+const now=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())} ${z(d.getHours())}:${z(d.getMinutes())}`};
+
+// ================= Render =================
+function render(){
+  $('#h-caja').textContent=CFG?CFG.caja+(CFG.cajero?' · '+CFG.cajero:''):'';
+  const on=navigator.onLine, pend=pendientes();
+  const net=$('#h-net'); net.className='pill '+(on?'on':'off');
+  net.textContent=(st.syncing?'⟳ Sincronizando':(on?'● En línea':'● Sin señal'))+(pend?` · ${pend} por subir`:' · al día');
+  const d1=DATA&&DATA.dia1?' '+DATA.dia1:'', d2=DATA&&DATA.dia2?' '+DATA.dia2:'';
+  $('#c-dia').innerHTML=[['Día 1',d1],['Día 2',d2]].map(([d,f])=>`<button class="chip ${st.dia===d?'on':''}" onclick="setDia('${d}')">${d}<span class="hint" style="color:inherit;opacity:.75">${f.replace(/\/2026$/,'')}</span></button>`).join('');
+  const reb=DATA?Math.round((DATA.reb||0)*100):0;
+  const lb=$('#c-liq'); lb.className='chip liq'+(st.liq?' on':''); lb.textContent=`🏷️ Liquidación −${reb}%`;
+  const has=platos().length>0;
+  $('#p0').style.display=has?'none':'flex';
+  [1,2,3].forEach(k=>$('#p'+k).classList.toggle('on',has&&st.step===k));
+  if(!has) return;
+  const tot=cartTotal(), items=cartItems();
+  // Paso 1
+  $('#c-wrap').className=st.liq?'liq':''; $('#c-wrap').style.cssText='flex:1;min-height:0;display:flex';
+  $('#c-grid').innerHTML=platos().map(p=>{const q=st.cart[p.id]||0, r=quedan(p), rest=r==null?null:r-q;
+    return `<div class="pbtn ${q?'has':''} ${rest!=null&&rest<=0&&!q?'out':''}" onclick="addC('${p.id}')"><span class="mn" onclick="event.stopPropagation();decC('${p.id}')">−</span><span class="q">${q}</span><div class="nm">${p.nombre}</div><div class="un">${p.unidad||''}</div><div class="pr">${fmt(precio(p))}</div>${rest==null?'':`<div class="st">${rest<=10?'⚠️ ':''}Quedan ${rest}</div>`}</div>`}).join('');
+  $('#c-total').textContent=fmt(tot);
+  $('#c-items').textContent=items.length?items.map(({p,q})=>q+'× '+p.nombre).join(' · '):'Tocá los platos para sumar';
+  $('#c-next').disabled=!tot;
+  // Paso 2
+  $('#c-total2').textContent=fmt(tot);
+  $('#c-res').innerHTML=items.map(({p,q})=>`<div class="li"><span>${q}× ${p.nombre}</span><b>${fmt(q*precio(p))}</b></div>`).join('')+(st.liq?'<div class="hint" style="margin-top:6px">🏷️ Precio de liquidación aplicado</div>':'');
+  const ic={Efectivo:'💵',Transferencia:'🏦',QR:'📱','Débito':'💳'};
+  $('#c-medio').innerHTML=Object.keys(ic).map(m=>`<button class="${st.medio===m?'on':''}" onclick="setMedio('${m}')"><b>${ic[m]}</b>${m==='Transferencia'?'Transf.':m}</button>`).join('');
+  $('#c-efvo').style.display=st.medio==='Efectivo'?'block':'none';
+  const c=x=>Math.ceil(tot/x)*x;
+  const sug=[...new Set([tot,c(1000),c(5000),c(10000),c(20000),c(10000)+10000,c(50000)])].filter(x=>x>=tot&&x>0).sort((a,b)=>a-b).slice(0,6);
+  $('#c-paga').innerHTML=sug.map(v=>`<button class="${st.paga===v?'on':''}" onclick="setPaga(${v})">${v===tot?'Justo':fmt(v)}</button>`).join('');
+  rVuelto();
+}
+function rVuelto(){
+  const tot=cartTotal(), v=$('#c-vuelto');
+  if(st.medio!=='Efectivo'){v.className='vuelto';v.innerHTML=`Cobrar por ${st.medio}<b>${fmt(tot)}</b>`;return}
+  if(!st.paga){v.className='vuelto na';v.innerHTML='Elegí con cuánto paga<b>—</b>';return}
+  const d=st.paga-tot; v.className='vuelto'+(d<0?' neg':'');
+  v.innerHTML=d<0?`Faltan<b>${fmt(-d)}</b>`:d===0?'Sin vuelto<b>$ 0</b>':`Vuelto<b>${fmt(d)}</b>`;
+}
+
+// ================= Acciones de caja =================
+function setDia(d){st.dia=d;LS.set('pena_dia',d);render()}
+function toggleLiq(){st.liq=!st.liq;st.paga=null;render()}
+function addC(id){st.cart[id]=(st.cart[id]||0)+1;st.paga=null;render()}
+function decC(id){st.cart[id]=Math.max(0,(st.cart[id]||0)-1);st.paga=null;render()}
+function clearCart(){st.cart={};st.paga=null;$('#c-otro').value='';render()}
+function setMedio(m){st.medio=m;st.paga=null;$('#c-otro').value='';render()}
+function setPaga(v){st.paga=v;$('#c-otro').value='';render()}
+$('#c-otro').addEventListener('input',e=>{st.paga=+e.target.value||null;$$('#c-paga button').forEach(b=>b.classList.remove('on'));rVuelto()});
+function goStep(n){
+  if(n===2&&!cartTotal()) return toast('Elegí al menos un plato');
+  st.step=n; render();
+}
+function nuevo(){st.cart={};st.paga=null;st.medio='Efectivo';$('#c-otro').value='';st.step=1;render()}
+function cobrar(){
+  const tot=cartTotal(); if(!tot) return toast('El pedido está vacío');
+  if(!CFG) return openSetup();
+  let paga='',vuelto='';
+  if(st.medio==='Efectivo'){paga=st.paga||tot; if(paga<tot) return toast('El importe recibido no alcanza'); vuelto=paga-tot}
+  const dn=st.dia==='Día 1'?1:2, key=`${CFG.caja}-D${dn}`;
+  const n=Math.max(SEQ[key]||0,((DATA&&DATA.seq)||{})[key]||0)+1; SEQ[key]=n;
+  const t={id:`${key}-${String(n).padStart(4,'0')}`,rev:1,caja:CFG.caja,dia:st.dia,fecha:now(),cajero:CFG.cajero||'',medio:st.medio,total:tot,paga,vuelto,liq:st.liq,anulado:false,
+    items:cartItems().map(({p,q})=>({id:p.id,nombre:p.nombre,q,p:precio(p)})),synced:false};
+  TK.push(t);
+  const ok=LS.set('pena_tickets',TK)&&LS.set('pena_seq',SEQ);
+  $('#d-tit').textContent=`Ticket ${t.id} · ${t.medio}`; $('#d-tot').textContent=fmt(tot);
+  const dv=$('#d-vuelto'); if(vuelto>0){dv.style.display='block';dv.className='vuelto';dv.innerHTML=`Entregar vuelto<b>${fmt(vuelto)}</b>`}else dv.style.display='none';
+  $('#d-save').textContent=ok?(navigator.onLine?'Guardado en el teléfono · se sube solo':'Guardado en el teléfono · se sube cuando vuelva la señal'):'⚠️ No se pudo guardar: anotalo en papel';
+  st.step=3; render(); sync(false);
+}
+
+// ================= Sincronización =================
+async function sync(manual){
+  if(st.syncing) return;
+  if(!CFG||!CFG.api){ if(manual) openSetup(); return; }
+  if(!navigator.onLine){ if(manual) toast('Sin señal: las ventas quedan guardadas en el teléfono'); render(); return; }
+  st.syncing=true; render();
+  try{
+    const pt=TK.filter(t=>!t.synced), pc=CI.filter(c=>!c.synced);
+    if(pt.length||pc.length){
+      const body={tickets:pt.map(({synced,...t})=>t),cierres:pc.map(({synced,...c})=>c)};
+      const r=await fetchT(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(body)}).then(r=>r.json());
+      if(!r.ok) throw new Error(r.error||'Error del conector');
+      const okT={}; (r.tickets||[]).forEach(x=>okT[x.id]=x.rev);
+      TK.forEach(t=>{if(okT[t.id]!==undefined&&okT[t.id]===t.rev) t.synced=true});
+      const okC={}; (r.cierres||[]).forEach(x=>okC[x.key]=x.rev);
+      CI.forEach(c=>{const k=c.caja+'|'+c.dia; if(okC[k]!==undefined&&okC[k]===c.rev) c.synced=true});
+      save();
+    }
+    const d=await fetchT(CFG.api+'?action=config&t='+Date.now()).then(r=>r.json());
+    if(!d.ok) throw new Error(d.error||'Error del conector');
+    DATA={...d,lastSync:new Date().toISOString()}; save();
+    if(manual) toast('✓ Sincronizado'+(pendientes()?` (quedan ${pendientes()})`:''));
+  }catch(e){
+    if(manual) toast('No se pudo sincronizar: queda todo guardado en el teléfono');
+    console.warn(e);
+  }finally{ st.syncing=false; render(); if($('#m-cierre').classList.contains('on')) rCierre(); }
+}
+function fetchT(url,opt={},ms=20000){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);return fetch(url,{...opt,signal:c.signal,redirect:'follow'}).finally(()=>clearTimeout(t))}
+window.addEventListener('online',()=>{render();sync(false)});
+window.addEventListener('offline',render);
+setInterval(()=>{if(pendientes()||!DATA||Date.now()-new Date(DATA.lastSync||0)>5*60000) sync(false)},45000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) sync(false)});
+
+// ================= Cierre =================
+function openCierre(){rCierre();const c=CI.find(x=>CFG&&x.caja===CFG.caja&&x.dia===st.dia);$('#ci-cont').value=c?c.contado:'';$('#ci-obs').value=c?c.obs:'';difCierre();$('#m-cierre').classList.add('on')}
+function tkDia(){return TK.filter(t=>CFG&&t.caja===CFG.caja&&t.dia===st.dia)}
+function rCierre(){
+  $('#ci-tit').textContent=(CFG?CFG.caja:'')+' · '+st.dia;
+  const vs=tkDia().filter(t=>!t.anulado), por=m=>vs.filter(t=>t.medio===m).reduce((a,t)=>a+t.total,0);
+  $('#ci-kpis').innerHTML=[['Total vendido',fmt(vs.reduce((a,t)=>a+t.total,0))+`<div class="hint">${vs.length} tickets</div>`],['Efectivo (sistema)',fmt(por('Efectivo'))],['Transf. + QR',fmt(por('Transferencia')+por('QR'))],['Débito',fmt(por('Débito'))]].map(([l,v])=>`<div class="kpi"><div class="l">${l}</div><div class="v">${v}</div></div>`).join('');
+  const agg={}; vs.forEach(t=>t.items.forEach(i=>{agg[i.nombre]=agg[i.nombre]||{q:0,m:0};agg[i.nombre].q+=i.q;agg[i.nombre].m+=i.q*i.p}));
+  $('#ci-plato').innerHTML='<tr><th>Plato</th><th class="n">Cant.</th><th class="n">Importe</th></tr>'+(Object.entries(agg).map(([n,a])=>`<tr><td>${n}</td><td class="n">${a.q}</td><td class="n">${fmt(a.m)}</td></tr>`).join('')||'<tr><td colspan="3" class="hint">Sin ventas</td></tr>');
+  $('#ci-tk').innerHTML='<tr><th>Ticket</th><th class="n">Total</th><th></th></tr>'+(tkDia().slice().reverse().map(t=>`<tr style="${t.anulado?'opacity:.45;text-decoration:line-through':''}"><td><b>${t.id.split('-').pop()}</b> · ${t.fecha.slice(11)} · ${t.medio}${t.liq?' 🏷️':''} ${t.synced?'':'<span title="por subir">⏳</span>'}<div class="hint">${t.items.map(i=>i.q+'× '+i.nombre).join(', ')}</div></td><td class="n">${fmt(t.total)}</td><td>${t.anulado?'':`<button class="btn sec" style="padding:6px 8px" onclick="pedirAnular('${t.id}')">Anular</button>`}</td></tr>`).join('')||'<tr><td colspan="3" class="hint">Sin tickets</td></tr>');
+  const c=CI.find(x=>CFG&&x.caja===CFG.caja&&x.dia===st.dia);
+  $('#ci-estado').textContent=c?(c.synced?'✓ Cierre subido a la planilla':'⏳ Cierre guardado, se sube con señal'):'';
+  difCierre();
+}
+function difCierre(){const ef=tkDia().filter(t=>!t.anulado&&t.medio==='Efectivo').reduce((a,t)=>a+t.total,0), v=$('#ci-cont').value;
+  const el=$('#ci-dif'); if(v===''){el.textContent='';return} const d=+v-ef; el.textContent=d===0?'✓ Cuadra con el sistema':(d>0?'Sobran ':'Faltan ')+fmt(Math.abs(d)); el.style.color=d===0?'var(--verde)':'var(--rojo)'}
+$('#ci-cont').addEventListener('input',difCierre);
+function enviarCierre(){
+  if(!CFG) return openSetup(); const v=$('#ci-cont').value; if(v==='') return toast('Cargá el efectivo contado');
+  const prev=CI.find(x=>x.caja===CFG.caja&&x.dia===st.dia);
+  const c={caja:CFG.caja,dia:st.dia,cajero:CFG.cajero,contado:+v,obs:$('#ci-obs').value,ts:now(),rev:(prev?prev.rev:0)+1,synced:false};
+  CI=CI.filter(x=>x!==prev); CI.push(c); save(); toast('Cierre guardado'); rCierre(); sync(false);
+}
+function pedirAnular(id){confirmar('Anular ticket',`¿Anular el ticket ${id}? Queda registrado como anulado en la planilla.`,null,()=>{const t=TK.find(x=>x.id===id);t.anulado=true;t.rev++;t.synced=false;save();toast('Ticket anulado');rCierre();render();sync(false)})}
+
+// ================= Menú, configuración, respaldo =================
+function openMenu(){$('#mn-info').innerHTML=`Caja <b>${CFG?CFG.caja:'—'}</b> · ${CFG&&CFG.cajero||'sin cajero'}<br>Tickets en este teléfono: ${TK.length} · por subir: ${pendientes()}<br>Última sincronización: ${DATA&&DATA.lastSync?new Date(DATA.lastSync).toLocaleString('es-AR'):'nunca'}`;$('#m-menu').classList.add('on')}
+function openSetup(){closeM('m-menu');const c=CFG||{caja:'C1',cajero:'',api:''};st._caja=c.caja;
+  $('#s-caja').innerHTML=['C1','C2'].map(k=>`<button class="chip ${st._caja===k?'on':''}" onclick="st._caja='${k}';openSetup()">${k}</button>`).join('');
+  if(!$('#m-setup').classList.contains('on')){$('#s-cajero').value=c.cajero;$('#s-api').value=c.api}
+  $('#s-cancel').style.display=CFG&&CFG.api?'inline-block':'none';
+  const pend=TK.some(t=>!t.synced&&t.caja!==st._caja); const w=$('#s-warn'); w.style.display=pend?'block':'none'; w.textContent=pend?'Hay ventas de la otra caja sin subir en este teléfono. Sincronizá antes de cambiar de caja.':'';
+  $('#m-setup').classList.add('on')}
+function saveSetup(){const api=$('#s-api').value.trim(), cajero=$('#s-cajero').value.trim();
+  if(!/^https:\/\/script\.google(usercontent)?\.com\//.test(api)) return toast('Revisá la URL del conector (empieza con https://script.google.com/…)');
+  if(!cajero) return toast('Cargá el nombre de quien cobra');
+  CFG={caja:st._caja,cajero,api}; save(); closeM('m-setup'); render(); sync(true)}
+function descargar(){
+  const rows=[['ticket','caja','dia','fecha','cajero','medio','total','paga','vuelto','liquidacion','anulado','subido','plato','cantidad','precio']];
+  TK.forEach(t=>t.items.forEach(i=>rows.push([t.id,t.caja,t.dia,t.fecha,t.cajero,t.medio,t.total,t.paga,t.vuelto,t.liq?'Sí':'No',t.anulado?'Sí':'No',t.synced?'Sí':'No',i.nombre,i.q,i.p])));
+  const csv='﻿'+rows.map(r=>r.map(x=>`"${String(x??'').replace(/"/g,'""')}"`).join(';')).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv'})); a.download=`ventas_${CFG?CFG.caja:'caja'}_${now().replace(/[ :]/g,'-')}.csv`; document.body.appendChild(a); a.click(); a.remove();
+}
+function openReset(){closeM('m-menu');
+  if(pendientes()) return toast(`Hay ${pendientes()} registros sin subir. Sincronizá primero.`);
+  confirmar('Borrar datos de prueba','Borra los tickets y cierres guardados en este teléfono (ya subidos a la planilla). La numeración de tickets NO se reinicia. Escribí BORRAR para confirmar.','BORRAR',()=>{TK=[];CI=[];save();toast('Datos locales borrados');render()})}
+function confirmar(tit,txt,palabra,fn){$('#cf-tit').textContent=tit;$('#cf-txt').textContent=txt;const i=$('#cf-in');i.value='';i.style.display=palabra?'block':'none';i.placeholder=palabra||'';
+  $('#cf-ok').onclick=()=>{if(palabra&&i.value.trim().toUpperCase()!==palabra) return toast('Escribí '+palabra);closeM('m-conf');fn()};$('#m-conf').classList.add('on')}
+function closeM(id){$('#'+id).classList.remove('on')}
+let _tt;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2600)}
+
+// ================= Inicio =================
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
+render();
+if(!CFG||!CFG.api) openSetup(); else sync(false);
+</script>
+</body>
+</html>
