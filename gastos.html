@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#4d6b3a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Gastos Peña">
+<link rel="manifest" href="gastos.webmanifest">
+<link rel="apple-touch-icon" href="gastos-192.png">
+<title>Gastos · Peña Folclórica</title>
+<style>
+:root{--bg:#efe3cc;--card:#fbf5e9;--ink:#2a1a10;--muted:#7a5f48;--line:#dcc9a8;--terra:#9e2a1e;--terra-d:#5c1a10;--mostaza:#c9902c;--verde:#4d6b3a;--rojo:#a3271c;--soft:#ead9bb;--cuero:#6b3f22;--azul:#35566e;
+--guarda:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Crect width='40' height='16' fill='%23f3e6cc'/%3E%3Cpath d='M0 8 L8 0 L16 8 L8 16Z' fill='%239e2a1e'/%3E%3Cpath d='M20 8 L28 0 L36 8 L28 16Z' fill='%232a1a10'/%3E%3Cpath d='M8 4 L12 8 L8 12 L4 8Z' fill='%23f3e6cc'/%3E%3Cpath d='M28 4 L32 8 L28 12 L24 8Z' fill='%23c9902c'/%3E%3Crect width='40' height='1.5' fill='%232a1a10'/%3E%3Crect y='14.5' width='40' height='1.5' fill='%232a1a10'/%3E%3C/svg%3E")}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0}
+body{font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:15px}
+header{position:sticky;top:0;z-index:10;background:var(--verde);color:#fff;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;display:flex;align-items:center;gap:8px}
+header h1{font:700 16px Georgia,serif;margin:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:46vw}
+.guarda{height:12px;background:var(--guarda) repeat-x;background-size:30px 12px;position:sticky;top:calc(48px + env(safe-area-inset-top));z-index:9}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:4px 9px;white-space:nowrap}
+.pill.on{background:#dfeedd;color:#2f5a2b}.pill.off{background:#f6dcdc;color:#8a2626}
+.hbtn{background:rgba(255,255,255,.18);border:0;color:#fff;border-radius:8px;padding:7px 10px;font-weight:700;font-size:13px}
+.sp{flex:1}
+.tabs{display:flex;gap:6px;padding:10px 10px 0}
+.tabs button{flex:1;border:1px solid var(--line);background:#fff;border-radius:10px;padding:10px 4px;font-weight:800;font-size:13px;color:var(--ink)}
+.tabs button.on{background:var(--cuero);color:#fff;border-color:var(--cuero)}
+main{padding:10px 10px calc(90px + env(safe-area-inset-bottom));max-width:680px;margin:0 auto}
+.view{display:none}.view.on{display:block}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px;font-weight:600}
+input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:11px 10px;background:#fff;color:var(--ink);width:100%}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1.3fr;gap:8px}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:8px 12px;font-weight:700;font-size:13px;color:var(--ink)}
+.chip.on{background:var(--cuero);color:#fff;border-color:var(--cuero)}
+.cond{display:none;background:#fff7e8;border:1px dashed var(--mostaza);border-radius:10px;padding:10px;margin-top:10px}
+.cond.on{display:block}
+.foto{border:2px dashed var(--line);border-radius:12px;padding:14px;text-align:center;background:#fff;margin-top:6px}
+.foto img{max-width:100%;max-height:220px;border-radius:8px;display:block;margin:0 auto 8px}
+.btn{border:0;border-radius:10px;padding:12px 14px;font-weight:800;font-size:15px;background:var(--terra);color:#fff;box-shadow:0 2px 0 var(--terra-d);cursor:pointer}
+.btn.sec{background:var(--soft);color:var(--ink);box-shadow:0 2px 0 #cdb58c}
+.btn.ok{background:var(--verde);box-shadow:0 2px 0 #34492a}
+.btn.sm{padding:7px 10px;font-size:13px}
+.save{position:fixed;left:0;right:0;bottom:0;padding:10px 10px calc(10px + env(safe-area-inset-bottom));background:linear-gradient(180deg,rgba(239,227,204,0),var(--bg) 30%);z-index:8}
+.save .btn{width:100%;max-width:660px;display:block;margin:0 auto;padding:16px;font-size:17px}
+.item{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.item .top{display:flex;gap:8px;align-items:flex-start}
+.item b.imp{font:800 17px Georgia,serif;white-space:nowrap}
+.tag{display:inline-block;font-size:11px;padding:2px 7px;border-radius:20px;background:var(--soft);margin:3px 4px 0 0}
+.tag.cons{background:#fbe9c8;color:#7a5410}.tag.rein{background:#dcebf5;color:#244a63}.tag.ok{background:#dfeedd;color:#2f5a2b}.tag.warn{background:#f6dcdc;color:#8a2626}.tag.wait{background:#efe7f5;color:#5a3b73}
+.hint{font-size:12px;color:var(--muted)}
+.modal{position:fixed;inset:0;background:rgba(30,20,10,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.on{display:flex}
+.sheet{background:var(--card);width:100%;max-width:640px;max-height:92dvh;overflow:auto;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sheet h2{font:800 19px Georgia,serif;margin:0;color:var(--terra-d)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.toast{position:fixed;left:50%;bottom:calc(84px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:70;max-width:90vw;text-align:center}
+.toast.on{opacity:1}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:10px}
+.kpi{background:#fff;border:1px solid var(--line);border-left:4px solid var(--verde);border-radius:10px;padding:8px 10px}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase}.kpi .v{font:800 19px Georgia,serif}
+.menu button{display:block;width:100%;text-align:left;margin:6px 0}
+</style>
+</head>
+<body>
+<header>
+  <h1>🧾 Gastos <span id="h-user"></span></h1>
+  <span class="pill" id="h-net"></span>
+  <div class="sp"></div>
+  <button class="hbtn" onclick="sync(true)">⟳</button>
+  <button class="hbtn" onclick="openMenu()">☰</button>
+</header>
+<div class="guarda"></div>
+<div class="tabs">
+  <button data-t="nuevo" class="on">＋ Nuevo</button>
+  <button data-t="mis">Mis cargas <span id="t-mis"></span></button>
+  <button data-t="pend">A pagar <span id="t-pend"></span></button>
+</div>
+
+<main>
+<!-- ============ NUEVO GASTO ============ -->
+<section class="view on" id="v-nuevo">
+  <form id="f" autocomplete="off">
+    <div class="card">
+      <div class="row"><b id="f-tit">Nuevo gasto</b><div class="sp"></div><button type="button" class="btn sec sm" id="f-cancel" style="display:none" onclick="resetForm()">Cancelar edición</button></div>
+      <div class="g2">
+        <div><label>Fecha</label><input type="date" name="fecha" required></div>
+        <div><label>Comprador (quién pagó)</label><input name="comprador" list="dl-comp" required></div>
+      </div>
+      <label>Proveedor</label>
+      <input name="proveedor" list="dl-prov" placeholder="Ej: Frigorífico Andes">
+      <label>Detalle de la compra</label>
+      <input name="detalle" required placeholder="Ej: Chivo 10 kg">
+      <div class="g3">
+        <div><label>Cantidad</label><input type="number" step="any" inputmode="decimal" name="cant"></div>
+        <div><label>Unidad</label><select name="unidad"><option>kg</option><option>u</option><option>docena</option><option>paquete</option><option>litro</option><option>bolsa</option><option>servicio</option></select></div>
+        <div><label>Importe total $</label><input type="number" step="any" inputmode="decimal" name="importe" required></div>
+      </div>
+      <label>Rubro</label>
+      <div class="chips" id="c-rubro"></div>
+      <label>Imputar a</label>
+      <select name="imputa" id="f-imputa" required></select>
+      <div class="hint">El plato al que corresponde el gasto, o "Generales" (pan, gas, descartables, canon…).</div>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">Modalidad de pago</label>
+      <div class="chips" id="c-modo"></div>
+      <div class="cond" id="f-cond">
+        <b id="cond-tit" style="font-size:14px"></b>
+        <div class="g2">
+          <div><label id="venc-lbl">Fecha</label><input type="date" name="venc"></div>
+          <div><label>Importe a pagar $</label><input type="number" step="any" inputmode="decimal" name="impPend"></div>
+        </div>
+        <div id="aquien-wrap"><label>Reintegrar a</label><input name="aQuien" list="dl-comp" placeholder="Por defecto, el comprador"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <label style="margin-top:0">Comprobante (foto del ticket o factura)</label>
+      <div class="foto" id="foto-box">
+        <div id="foto-prev"></div>
+        <div class="row" style="justify-content:center">
+          <label class="btn ok" style="margin:0;color:#fff">📷 Sacar foto<input type="file" accept="image/*" capture="environment" id="in-cam" style="display:none"></label>
+          <label class="btn sec" style="margin:0">🖼️ Elegir archivo<input type="file" accept="image/*,application/pdf" id="in-file" style="display:none"></label>
+        </div>
+        <div class="hint" style="margin-top:6px">La foto se achica y se guarda en el teléfono hasta que haya señal.</div>
+      </div>
+    </div>
+  </form>
+</section>
+
+<!-- ============ MIS CARGAS ============ -->
+<section class="view" id="v-mis">
+  <div class="sum" id="mis-sum"></div>
+  <div id="mis-list"></div>
+</section>
+
+<!-- ============ PENDIENTES ============ -->
+<section class="view" id="v-pend">
+  <div class="hint" style="margin-bottom:8px">Consignaciones y reintegros que figuran sin pagar en la planilla (se actualiza al sincronizar).</div>
+  <div class="sum" id="pend-sum"></div>
+  <div id="pend-list"></div>
+</section>
+</main>
+
+<div class="save" id="save-bar"><button class="btn" onclick="guardar()" id="b-save">💾 Guardar gasto</button></div>
+
+<!-- Configuración -->
+<div class="modal" id="m-setup"><div class="sheet">
+  <h2>⚙️ ¿Quién carga gastos en este teléfono?</h2>
+  <label>Usuario</label>
+  <div class="chips" id="s-user"></div>
+  <label>Dirección del conector (URL del Apps Script)</label>
+  <input id="s-api" placeholder="https://script.google.com/macros/s/…/exec">
+  <div class="row" style="margin-top:14px"><button class="btn" style="flex:1;padding:14px" onclick="saveSetup()">Guardar y sincronizar</button><button class="btn sec" id="s-cancel" onclick="closeM('m-setup')">Cancelar</button></div>
+</div></div>
+
+<!-- Menú -->
+<div class="modal" id="m-menu"><div class="sheet menu">
+  <div class="row"><h2>☰ Opciones</h2><div class="sp"></div><button class="btn sec sm" onclick="closeM('m-menu')">✕</button></div>
+  <div class="hint" id="mn-info" style="margin:8px 0"></div>
+  <button class="btn sec" onclick="sync(true)">⟳ Sincronizar ahora</button>
+  <button class="btn sec" onclick="openSetup()">⚙️ Cambiar usuario / conector</button>
+  <button class="btn sec" onclick="openReset()">🗑 Borrar cargas ya subidas de este teléfono</button>
+</div></div>
+
+<!-- Confirmación -->
+<div class="modal" id="m-conf"><div class="sheet">
+  <h2 id="cf-tit"></h2>
+  <p id="cf-txt"></p>
+  <input id="cf-in" style="display:none">
+  <div class="row" style="margin-top:12px"><button class="btn sec" style="flex:1" onclick="closeM('m-conf')">Cancelar</button><button class="btn" style="flex:1" id="cf-ok">Confirmar</button></div>
+</div></div>
+
+<!-- Ver foto -->
+<div class="modal" id="m-foto"><div class="sheet" style="text-align:center">
+  <div class="row"><h2 id="mf-tit">Comprobante</h2><div class="sp"></div><button class="btn sec sm" onclick="closeM('m-foto')">✕</button></div>
+  <div id="mf-body" style="margin-top:10px"></div>
+</div></div>
+
+<datalist id="dl-comp"></datalist><datalist id="dl-prov"></datalist>
+<div class="toast" id="toast"></div>
+
+<script>
+// ================= Básicos =================
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
+const fmt=n=>'$ '+Math.round(n||0).toLocaleString('es-AR');
+const USERS=[{k:'JMA',n:'Juan Manuel Alejandrino'},{k:'GSR',n:'Gonzalo Salcedo'}];
+const RUBROS=['Carnes','Verdulería','Almacén','Panadería','Bebidas','Descartables','Gas / Carbón','Alquileres','Otros'];
+const MODOS=['Efectivo','Transferencia','Tarjeta','Consignación','A reintegrar'];
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},
+          set(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){toast('⚠️ No se pudo guardar en el teléfono');return false}}};
+let CFG=LS.get('pg_cfg',null);      // {user:'JMA', api}
+let DATA=LS.get('pg_data',null);    // {imputables, pendientes, lastSync}
+let GS=LS.get('pg_gastos',[]);      // gastos cargados en este teléfono
+let PAGOS=LS.get('pg_pagos',[]);    // pagos marcados, por subir
+const st={rubro:'Carnes',modo:'Efectivo',foto:null,edit:null,syncing:false,tab:'nuevo'};
+function save(){LS.set('pg_cfg',CFG);LS.set('pg_data',DATA);LS.set('pg_gastos',GS);LS.set('pg_pagos',PAGOS)}
+const userName=()=>CFG?(USERS.find(u=>u.k===CFG.user)||{}).n||'':'';
+const hoy=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
+const ahora=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${hoy()} ${z(d.getHours())}:${z(d.getMinutes())}`};
+const dd=s=>s?String(s).slice(0,10).split('-').reverse().slice(0,2).join('/'):'s/f';
+if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
+
+// Fotos en IndexedDB (no entran en localStorage)
+const idb={db:null,
+  open(){return new Promise((res,rej)=>{if(this.db)return res(this.db);const r=indexedDB.open('pena_gastos',1);r.onupgradeneeded=()=>r.result.createObjectStore('fotos');r.onsuccess=()=>{this.db=r.result;res(this.db)};r.onerror=()=>rej(r.error)})},
+  async tx(mode,fn){const db=await this.open();return new Promise((res,rej)=>{const t=db.transaction('fotos',mode);const out=fn(t.objectStore('fotos'));t.oncomplete=()=>res(out&&out.result);t.onerror=()=>rej(t.error)})},
+  put(k,v){return this.tx('readwrite',s=>s.put(v,k))}, get(k){return this.tx('readonly',s=>s.get(k))}, del(k){return this.tx('readwrite',s=>s.delete(k))}};
+
+// Link: ?usuario=JMA&api=https://...
+(function(){const q=new URLSearchParams(location.search);if(q.get('api')||q.get('usuario')){
+  CFG=Object.assign({user:'',api:''},CFG||{});
+  if(q.get('usuario'))CFG.user=q.get('usuario').toUpperCase(); if(q.get('api'))CFG.api=q.get('api');
+  LS.set('pg_cfg',CFG); history.replaceState(null,'',location.pathname);
+}})();
+
+// ================= Formulario =================
+function chipsRubro(){$('#c-rubro').innerHTML=RUBROS.map(r=>`<button type="button" class="chip ${st.rubro===r?'on':''}" onclick="st.rubro='${r}';chipsRubro()">${r}</button>`).join('')}
+function chipsModo(){
+  $('#c-modo').innerHTML=MODOS.map(m=>`<button type="button" class="chip ${st.modo===m?'on':''}" onclick="setModo('${m}')">${m}</button>`).join('');
+  const on=st.modo==='Consignación'||st.modo==='A reintegrar', f=$('#f').elements;
+  $('#f-cond').classList.toggle('on',on); $('#aquien-wrap').style.display=st.modo==='A reintegrar'?'block':'none';
+  if(st.modo==='Consignación'){$('#cond-tit').textContent='📦 Mercadería en consignación';$('#venc-lbl').textContent='Fecha de pago al proveedor'}
+  if(st.modo==='A reintegrar'){$('#cond-tit').textContent='↩️ Pagado con plata propia';$('#venc-lbl').textContent='Fecha de reintegro'}
+  if(on&&!f.impPend.value) f.impPend.value=f.importe.value;
+}
+function setModo(m){st.modo=m;chipsModo()}
+$('#f').elements.importe.addEventListener('input',e=>{if($('#f-cond').classList.contains('on'))$('#f').elements.impPend.value=e.target.value});
+function fillImputa(sel){const list=(DATA&&DATA.imputables&&DATA.imputables.length)?DATA.imputables:['Generales'];
+  $('#f-imputa').innerHTML='<option value="">Elegí…</option>'+list.map(x=>`<option ${x===sel?'selected':''}>${x}</option>`).join('')}
+function resetForm(){
+  const f=$('#f'); f.reset(); st.edit=null; st.foto=null; st.rubro='Carnes'; st.modo='Efectivo';
+  f.elements.fecha.value=hoy(); f.elements.comprador.value=userName();
+  $('#f-tit').textContent='Nuevo gasto'; $('#f-cancel').style.display='none'; $('#b-save').textContent='💾 Guardar gasto';
+  fillImputa(); chipsRubro(); chipsModo(); fotoPrev();
+}
+async function comprimir(file){
+  if(file.type==='application/pdf'){ if(file.size>4e6) throw new Error('PDF muy pesado (máx 4 MB)');
+    return await new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result);r.onerror=rej;r.readAsDataURL(file)}) }
+  const url=URL.createObjectURL(file);
+  try{ const img=await new Promise((res,rej)=>{const i=new Image();i.onload=()=>res(i);i.onerror=rej;i.src=url});
+    const max=1400, s=Math.min(1,max/Math.max(img.width,img.height)), w=Math.round(img.width*s), h=Math.round(img.height*s);
+    const c=document.createElement('canvas'); c.width=w; c.height=h; c.getContext('2d').drawImage(img,0,0,w,h);
+    return c.toDataURL('image/jpeg',0.72);
+  } finally { URL.revokeObjectURL(url) }
+}
+async function onFile(e){const f=e.target.files[0]; e.target.value=''; if(!f) return;
+  try{ st.foto=await comprimir(f); fotoPrev(); toast('Comprobante listo') }catch(err){ toast('No se pudo leer el archivo: '+(err.message||'')) } }
+$('#in-cam').addEventListener('change',onFile); $('#in-file').addEventListener('change',onFile);
+function fotoPrev(){const p=$('#foto-prev');
+  if(!st.foto){p.innerHTML='';return}
+  p.innerHTML=st.foto.startsWith('data:application/pdf')?'<div style="font-size:40px">📄</div><div class="hint">PDF cargado</div>':`<img src="${st.foto}">`;
+  p.innerHTML+=`<button type="button" class="btn sec sm" onclick="st.foto=null;fotoPrev()" style="margin-bottom:8px">Quitar</button>`}
+
+async function guardar(){
+  if(!CFG||!CFG.user) return openSetup();
+  const f=$('#f'), e=f.elements;
+  if(!f.reportValidity()) return;
+  if(!e.imputa.value) return toast('Elegí a qué plato se imputa');
+  const conPend=st.modo==='Consignación'||st.modo==='A reintegrar';
+  if(conPend&&!e.venc.value) return toast('Cargá la fecha de pago / reintegro');
+  const prev=st.edit?GS.find(x=>x.id===st.edit):null;
+  const id=prev?prev.id:`G-${CFG.user}-${Date.now().toString(36).toUpperCase()}`;
+  const g={id,rev:(prev?prev.rev:0)+1,fecha:e.fecha.value,comprador:e.comprador.value.trim(),proveedor:e.proveedor.value.trim(),rubro:st.rubro,
+    detalle:e.detalle.value.trim(),cant:e.cant.value,unidad:e.unidad.value,importe:+e.importe.value,imputa:e.imputa.value,modo:st.modo,
+    venc:conPend?e.venc.value:'',impPend:conPend?(+e.impPend.value||+e.importe.value):'',aQuien:st.modo==='A reintegrar'?(e.aQuien.value.trim()||e.comprador.value.trim()):'',
+    estado:conPend?'Pendiente':'',usuario:userName(),alta:prev?prev.alta:ahora(),
+    tieneFoto:!!st.foto||(prev&&prev.tieneFoto),compUrl:prev?prev.compUrl||'':'',synced:false};
+  try{ if(st.foto) await idb.put(id,st.foto); }catch(err){ return toast('⚠️ No se pudo guardar la foto en el teléfono') }
+  if(prev) GS[GS.indexOf(prev)]=g; else GS.push(g);
+  if(!LS.set('pg_gastos',GS)) return;
+  toast(g.tieneFoto?'✓ Gasto guardado':'✓ Guardado · falta el comprobante');
+  resetForm(); render(); sync(false);
+}
+function editar(id){const g=GS.find(x=>x.id===id); if(!g||g.synced) return;
+  const e=$('#f').elements; showTab('nuevo'); st.edit=id; st.rubro=g.rubro; st.modo=g.modo;
+  ['fecha','comprador','proveedor','detalle','cant','unidad','importe','venc','impPend','aQuien'].forEach(k=>e[k].value=g[k]??'');
+  fillImputa(g.imputa); chipsRubro(); chipsModo();
+  idb.get(id).then(v=>{st.foto=v||null;fotoPrev()}).catch(()=>{});
+  $('#f-tit').textContent='Editando gasto'; $('#f-cancel').style.display='inline-block'; $('#b-save').textContent='💾 Guardar cambios'; window.scrollTo(0,0)}
+function borrar(id){const g=GS.find(x=>x.id===id); if(!g||g.synced) return;
+  confirmar('Borrar gasto',`¿Borrar "${g.detalle}" por ${fmt(g.importe)}? Todavía no se subió a la planilla.`,null,()=>{GS=GS.filter(x=>x!==g);idb.del(id).catch(()=>{});save();render();toast('Gasto borrado')})}
+async function verFoto(id){const g=GS.find(x=>x.id===id); $('#mf-tit').textContent=g?g.detalle:'Comprobante';
+  let v=null; try{v=await idb.get(id)}catch(e){}
+  $('#mf-body').innerHTML=v?(v.startsWith('data:application/pdf')?'<div style="font-size:50px">📄</div><p>PDF guardado en el teléfono</p>':`<img src="${v}" style="max-width:100%;border-radius:10px">`)
+    :(g&&g.compUrl?`<p>El comprobante ya está en Drive.</p><a class="btn ok" href="${g.compUrl}" target="_blank" rel="noopener">Abrir en Drive</a>`:'<p>Sin comprobante.</p>');
+  $('#m-foto').classList.add('on')}
+
+// ================= Render =================
+function render(){
+  $('#h-user').textContent=CFG&&CFG.user?'· '+userName().split(' ')[0]:'';
+  const on=navigator.onLine, pend=GS.filter(g=>!g.synced).length+PAGOS.length;
+  const n=$('#h-net'); n.className='pill '+(on?'on':'off');
+  n.textContent=(st.syncing?'⟳ Subiendo':(on?'● En línea':'● Sin señal'))+(pend?` · ${pend} por subir`:' · al día');
+  // Mis cargas
+  const mine=GS.slice().sort((a,b)=>b.alta.localeCompare(a.alta));
+  $('#t-mis').textContent=GS.length?`(${GS.length})`:'';
+  const tot=GS.reduce((a,g)=>a+g.importe,0), sinC=GS.filter(g=>!g.tieneFoto).length;
+  $('#mis-sum').innerHTML=`<div class="kpi"><div class="l">Cargado en este teléfono</div><div class="v">${fmt(tot)}</div><div class="hint">${GS.length} gastos</div></div><div class="kpi" style="border-left-color:${sinC?'var(--rojo)':'var(--verde)'}"><div class="l">Sin comprobante</div><div class="v">${sinC}</div></div>`;
+  $('#mis-list').innerHTML=mine.map(g=>{
+    const modo=g.modo==='Consignación'?`<span class="tag cons">Consignación · paga ${dd(g.venc)}</span>`:g.modo==='A reintegrar'?`<span class="tag rein">Reintegrar a ${g.aQuien} · ${dd(g.venc)}</span>`:`<span class="tag">${g.modo}</span>`;
+    return `<div class="item"><div class="top"><div class="sp"><b>${g.detalle}</b><div class="hint">${dd(g.fecha)} · ${g.comprador}${g.proveedor?' · '+g.proveedor:''}</div></div><b class="imp">${fmt(g.importe)}</b></div>
+      <div><span class="tag">${g.imputa}</span>${modo}${g.tieneFoto?`<span class="tag ok" onclick="verFoto('${g.id}')">📎 Comprobante</span>`:'<span class="tag warn">Falta comprobante</span>'}${g.synced?'<span class="tag ok">✓ En planilla</span>':'<span class="tag wait">⏳ Por subir</span>'}</div>
+      ${g.synced?'':`<div class="row" style="margin-top:8px"><button class="btn sec sm" onclick="editar('${g.id}')">✏️ Editar</button><button class="btn sec sm" onclick="borrar('${g.id}')">🗑 Borrar</button></div>`}</div>`}).join('')||'<p class="hint">Todavía no cargaste gastos en este teléfono.</p>';
+  // Pendientes
+  const pagados=new Set(PAGOS.map(p=>p.id));
+  const P=((DATA&&DATA.pendientes)||[]).filter(p=>!pagados.has(p.id)&&!/EJEMPLO/.test(p.id)).sort((a,b)=>(a.venc||'').localeCompare(b.venc||''));
+  $('#t-pend').textContent=P.length?`(${P.length})`:'';
+  const tc=P.filter(p=>p.modo==='Consignación').reduce((a,p)=>a+p.impPend,0), tr=P.filter(p=>p.modo==='A reintegrar').reduce((a,p)=>a+p.impPend,0);
+  $('#pend-sum').innerHTML=`<div class="kpi" style="border-left-color:var(--mostaza)"><div class="l">Consignación</div><div class="v">${fmt(tc)}</div></div><div class="kpi" style="border-left-color:var(--azul)"><div class="l">Reintegros</div><div class="v">${fmt(tr)}</div></div>`;
+  $('#pend-list').innerHTML=P.map(p=>{const dias=p.venc?Math.round((new Date(p.venc+'T12:00')-new Date(hoy()+'T12:00'))/864e5):null;
+    return `<div class="item"><div class="top"><div class="sp"><b>${p.detalle}</b><div class="hint">${p.modo==='Consignación'?'Pagar a '+(p.proveedor||'proveedor'):'Reintegrar a '+p.aQuien} · ${dd(p.venc)}${dias!=null?(dias<0?` · <b style="color:var(--rojo)">vencido hace ${-dias} d</b>`:` · en ${dias} d`):''}</div></div><b class="imp">${fmt(p.impPend)}</b></div>
+    <div class="row" style="margin-top:8px"><span class="tag ${p.modo==='Consignación'?'cons':'rein'}">${p.modo}</span><div class="sp"></div><button class="btn ok sm" onclick="marcarPagado('${p.id}')">✔ Marcar pagado</button></div></div>`}).join('')||'<p class="hint">No hay pagos pendientes'+(DATA&&DATA.lastSync?'':' (sincronizá con señal para verlos)')+'.</p>';
+  $('#save-bar').style.display=st.tab==='nuevo'?'block':'none';
+  // listas sugeridas
+  $('#dl-comp').innerHTML=[...new Set(USERS.map(u=>u.n).concat(GS.map(g=>g.comprador)))].map(x=>`<option value="${x}">`).join('');
+  $('#dl-prov').innerHTML=[...new Set(GS.map(g=>g.proveedor).filter(Boolean))].map(x=>`<option value="${x}">`).join('');
+}
+function marcarPagado(id){const p=(DATA.pendientes||[]).find(x=>x.id===id);
+  confirmar('Marcar como pagado',`${p.detalle} · ${fmt(p.impPend)}. Queda como "Pagado" en la planilla con fecha de hoy.`,null,()=>{PAGOS.push({id,fecha:hoy()});save();render();toast('Marcado como pagado');sync(false)})}
+function showTab(t){st.tab=t;$$('.tabs button').forEach(b=>b.classList.toggle('on',b.dataset.t===t));$$('.view').forEach(v=>v.classList.toggle('on',v.id==='v-'+t));render();window.scrollTo(0,0)}
+$$('.tabs button').forEach(b=>b.addEventListener('click',()=>showTab(b.dataset.t)));
+
+// ================= Sincronización =================
+function fetchT(url,opt={},ms=45000){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);return fetch(url,{...opt,signal:c.signal,redirect:'follow'}).finally(()=>clearTimeout(t))}
+const post=b=>fetchT(CFG.api,{method:'POST',headers:{'Content-Type':'text/plain;charset=utf-8'},body:JSON.stringify(b)}).then(r=>r.json()).then(r=>{if(!r.ok)throw new Error(r.error||'Error del conector');return r});
+async function sync(manual){
+  if(st.syncing) return;
+  if(!CFG||!CFG.api){ if(manual) openSetup(); return; }
+  if(!navigator.onLine){ if(manual) toast('Sin señal: queda guardado en el teléfono'); render(); return; }
+  st.syncing=true; render(); let err=null;
+  try{
+    // Gastos de a uno (las fotos pesan)
+    for(const g of GS.filter(x=>!x.synced)){
+      let foto=null; if(g.tieneFoto&&!g.compUrl){ try{foto=await idb.get(g.id)}catch(e){} }
+      const {synced,tieneFoto,...send}=g;
+      const r=await post({gastos:[{...send,foto}]});
+      const ok=(r.gastos||[]).find(x=>x.id===g.id);
+      const cur=GS.find(x=>x.id===g.id);
+      if(ok&&cur&&ok.rev===cur.rev){ cur.synced=true; if(ok.comp){cur.compUrl=ok.comp; idb.del(g.id).catch(()=>{});} }
+      save(); render();
+    }
+    if(PAGOS.length){ const sent=PAGOS.slice(); const r=await post({pagos:sent}); const okIds=new Set((r.pagos||[]).map(x=>x.id)); PAGOS=PAGOS.filter(p=>!okIds.has(p.id)); save(); }
+    const d=await fetchT(CFG.api+'?action=config&t='+Date.now(),{},20000).then(r=>r.json());
+    if(!d.ok) throw new Error(d.error||'Error del conector');
+    DATA={imputables:d.imputables||[],pendientes:d.pendientes||[],lastSync:new Date().toISOString()}; save();
+    if(st.tab==='nuevo'&&!st.edit) fillImputa($('#f-imputa').value);
+  }catch(e){ err=e; console.warn(e); }
+  finally{ st.syncing=false; render(); }
+  if(manual) toast(err?'No se pudo sincronizar: queda guardado en el teléfono':'✓ Sincronizado');
+}
+window.addEventListener('online',()=>{render();sync(false)}); window.addEventListener('offline',render);
+setInterval(()=>{if(GS.some(g=>!g.synced)||PAGOS.length) sync(false)},60000);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) sync(false)});
+
+// ================= Menú y configuración =================
+function openMenu(){$('#mn-info').innerHTML=`Usuario: <b>${userName()||'—'}</b><br>Gastos en este teléfono: ${GS.length} · por subir: ${GS.filter(g=>!g.synced).length+PAGOS.length}<br>Última sincronización: ${DATA&&DATA.lastSync?new Date(DATA.lastSync).toLocaleString('es-AR'):'nunca'}`;$('#m-menu').classList.add('on')}
+function openSetup(){closeM('m-menu'); if(st._u===undefined) st._u=CFG?CFG.user:'';
+  $('#s-user').innerHTML=USERS.map(u=>`<button class="chip ${st._u===u.k?'on':''}" onclick="st._u='${u.k}';openSetup()">${u.n}</button>`).join('');
+  if(!$('#m-setup').classList.contains('on')) $('#s-api').value=CFG?CFG.api||'':'';
+  $('#s-cancel').style.display=CFG&&CFG.api&&CFG.user?'inline-block':'none'; $('#m-setup').classList.add('on')}
+function saveSetup(){const api=$('#s-api').value.trim();
+  if(!st._u) return toast('Elegí el usuario');
+  if(!/^https:\/\//.test(api)) return toast('Revisá la URL del conector');
+  CFG={user:st._u,api}; save(); closeM('m-setup'); resetForm(); render(); sync(true)}
+function openReset(){closeM('m-menu'); const n=GS.filter(g=>!g.synced).length+PAGOS.length;
+  if(n) return toast(`Hay ${n} registros sin subir. Sincronizá primero.`);
+  confirmar('Borrar cargas subidas','Borra de este teléfono los gastos que ya están en la planilla (no los borra de la planilla). Escribí BORRAR para confirmar.','BORRAR',()=>{GS=[];save();render();toast('Listo')})}
+function confirmar(tit,txt,palabra,fn){$('#cf-tit').textContent=tit;$('#cf-txt').textContent=txt;const i=$('#cf-in');i.value='';i.style.display=palabra?'block':'none';i.placeholder=palabra||'';
+  $('#cf-ok').onclick=()=>{if(palabra&&i.value.trim().toUpperCase()!==palabra) return toast('Escribí '+palabra);closeM('m-conf');fn()};$('#m-conf').classList.add('on')}
+function closeM(id){$('#'+id).classList.remove('on')}
+let _tt;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),2600)}
+
+// ================= Inicio =================
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(e=>console.warn('SW',e));
+resetForm(); render();
+if(!CFG||!CFG.api||!CFG.user) openSetup(); else sync(false);
+</script>
+</body>
+</html>

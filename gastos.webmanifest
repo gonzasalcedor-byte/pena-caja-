@@ -1,0 +1,14 @@
+{
+  "name": "Gastos · Peña Folclórica",
+  "short_name": "Gastos Peña",
+  "id": "./gastos.html",
+  "start_url": "./gastos.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#efe3cc",
+  "theme_color": "#4d6b3a",
+  "icons": [
+    {"src": "gastos-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any maskable"},
+    {"src": "gastos-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any maskable"}
+  ]
+}
