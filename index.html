@@ -261,8 +261,8 @@ const esAdmin=()=>!!(CFG&&['C7','C8','C9'].includes(CFG.caja));
 //          menos las ventas de este teléfono que todavía no se subieron
 function quedan(p){
   const local=TK.filter(t=>!t.synced&&!t.anulado&&(!p.desde||t.fecha>=p.desde)).reduce((a,t)=>a+t.items.filter(i=>i.id===p.id).reduce((b,i)=>b+i.q,0),0);
-  const base=(p.quedan!==undefined&&p.quedan!==null)?p.quedan:(p.rinde?p.rinde-(p.vendidas||0):null);
-  return base==null?null:base-local;
+  if(!p.control||p.quedan===undefined||p.quedan===null) return null; // sin límite fijado por el administrador
+  return p.quedan-local;
 }
 const cartItems=()=>Object.entries(st.cart).filter(([,q])=>q>0).map(([id,q])=>({p:platos().find(x=>x.id===id),q})).filter(x=>x.p);
 const cartTotal=()=>cartItems().reduce((a,{p,q})=>a+q*precio(p),0);
@@ -287,7 +287,7 @@ function render(){
   // Paso 1
   $('#c-wrap').className=st.liq?'liq':''; $('#c-wrap').style.cssText='flex:1;min-height:0;display:flex';
   $('#c-grid').innerHTML=platos().map(p=>{const q=st.cart[p.id]||0, r=quedan(p), rest=r==null?null:r-q;
-    return `<div class="pbtn ${q?'has':''} ${rest!=null&&rest<=0&&!q?'out':''} ${rest!=null&&rest<=aviso()?'low':''}" onclick="addC('${p.id}')"><span class="mn" onclick="event.stopPropagation();decC('${p.id}')">−</span><span class="q">${q}</span><div class="nm">${p.nombre}</div><div class="un">${p.unidad||''}</div><div class="pr">${fmt(precio(p))}</div>${rest==null?'':(rest<=0?'<div class="ag">AGOTADO</div>':`<div class="st">${rest<=aviso()?'⚠️ ':''}Quedan ${rest}</div>`)}</div>`}).join('');
+    return `<div class="pbtn ${q?'has':''} ${rest!=null&&rest<=0&&!q?'out':''} ${rest!=null?'low':''}" onclick="addC('${p.id}')"><span class="mn" onclick="event.stopPropagation();decC('${p.id}')">−</span><span class="q">${q}</span><div class="nm">${p.nombre}</div><div class="un">${p.unidad||''}</div><div class="pr">${fmt(precio(p))}</div>${rest==null?'':(rest<=0?'<div class="ag">AGOTADO</div>':`<div class="st"><b>Quedan ${rest}</b></div>`)}</div>`}).join('');
   rAlerta();
   $('#c-total').textContent=fmt(tot);
   $('#c-items').textContent=items.length?items.map(({p,q})=>q+'× '+p.nombre).join(' · '):'Tocá los platos para sumar';
@@ -315,17 +315,17 @@ function rVuelto(){
 function setDia(d){st.dia=d;LS.set('pena_dia',d);render()}
 function toggleLiq(){st.liq=!st.liq;st.paga=null;render()}
 function rAlerta(){
-  const low=platos().map(p=>({p,r:quedan(p)})).filter(x=>x.r!=null&&x.r<=aviso());
+  const lim=platos().map(p=>({p,r:quedan(p)})).filter(x=>x.r!=null);
   const el=$('#c-alert');
-  if(!low.length){el.innerHTML='';return}
-  const ago=low.filter(x=>x.r<=0), poc=low.filter(x=>x.r>0);
-  el.innerHTML=(ago.length?`<div class="alerta roja">⛔ Agotado: ${ago.map(x=>x.p.nombre).join(' · ')}</div>`:'')+(poc.length?`<div class="alerta">⚠️ Quedan pocas: ${poc.map(x=>x.p.nombre+' '+x.r).join(' · ')}</div>`:'');
+  if(!lim.length){el.innerHTML='';return}
+  const ago=lim.filter(x=>x.r<=0), con=lim.filter(x=>x.r>0);
+  el.innerHTML=(ago.length?`<div class="alerta roja">⛔ Agotado: ${ago.map(x=>x.p.nombre).join(' · ')}</div>`:'')+(con.length?`<div class="alerta">🔢 Con límite: ${con.map(x=>x.p.nombre+' (quedan '+x.r+')').join(' · ')}</div>`:'');
 }
 // Aviso (toast + vibración) cuando un plato cruza el umbral o se agota
 function chequearAvisos(){
   const nuevos=[];
-  platos().forEach(p=>{const r=quedan(p); if(r==null) return; const nivel=r<=0?2:(r<=aviso()?1:0); const prev=st.low[p.id]||0;
-    if(nivel>prev) nuevos.push(nivel===2?`⛔ Se agotó ${p.nombre}`:`⚠️ Quedan ${r} de ${p.nombre}`); st.low[p.id]=nivel;});
+  platos().forEach(p=>{const r=quedan(p); const nivel=(r!=null&&r<=0)?2:0; const prev=st.low[p.id]||0;
+    if(nivel>prev) nuevos.push(`⛔ Se agotó ${p.nombre}`); st.low[p.id]=nivel;});
   LS.set('pena_low',st.low);
   if(nuevos.length){toast(nuevos.join(' · ')); try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
 }
