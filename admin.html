@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#2a1a10">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Admin Peña">
+<link rel="manifest" href="admin.webmanifest">
+<link rel="apple-touch-icon" href="admin-192.png">
+<title>Administrador · Peña Folclórica</title>
+<style>
+:root{--bg:#efe3cc;--card:#fbf5e9;--ink:#2a1a10;--muted:#7a5f48;--line:#dcc9a8;--terra:#9e2a1e;--terra-d:#5c1a10;--mostaza:#c9902c;--verde:#4d6b3a;--rojo:#a3271c;--soft:#ead9bb;--cuero:#6b3f22;--azul:#35566e;
+--guarda:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='16' viewBox='0 0 40 16'%3E%3Crect width='40' height='16' fill='%23f3e6cc'/%3E%3Cpath d='M0 8 L8 0 L16 8 L8 16Z' fill='%239e2a1e'/%3E%3Cpath d='M20 8 L28 0 L36 8 L28 16Z' fill='%232a1a10'/%3E%3Cpath d='M8 4 L12 8 L8 12 L4 8Z' fill='%23f3e6cc'/%3E%3Cpath d='M28 4 L32 8 L28 12 L24 8Z' fill='%23c9902c'/%3E%3Crect width='40' height='1.5' fill='%232a1a10'/%3E%3Crect y='14.5' width='40' height='1.5' fill='%232a1a10'/%3E%3C/svg%3E")}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+body{margin:0;font-family:-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;background:var(--bg);color:var(--ink);font-size:14px}
+header{position:sticky;top:0;z-index:10;background:var(--ink);color:#fbf0dc;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;display:flex;align-items:center;gap:8px}
+header h1{font:700 16px Georgia,serif;margin:0;white-space:nowrap}
+.guarda{height:12px;background:var(--guarda) repeat-x;background-size:30px 12px}
+.pill{font-size:11px;font-weight:700;border-radius:20px;padding:4px 9px;white-space:nowrap}
+.pill.on{background:#dfeedd;color:#2f5a2b}.pill.off{background:#f6dcdc;color:#8a2626}
+.hbtn{background:rgba(255,255,255,.14);border:0;color:#fff;border-radius:8px;padding:7px 10px;font-weight:700;font-size:13px}
+.sp{flex:1}
+main{padding:10px;max-width:980px;margin:0 auto 30px}
+h2{font:800 17px Georgia,serif;color:var(--terra-d);margin:16px 2px 8px}
+.kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+.kpi{background:#fff;border:1px solid var(--line);border-left:4px solid var(--terra);border-radius:10px;padding:8px 10px}
+.kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase}
+.kpi .v{font:800 21px Georgia,serif}
+.kpi .s{font-size:11px;color:var(--muted)}
+.pos{color:var(--verde)}.neg{color:var(--rojo)}
+.alerta{background:#fff1d6;border:2px solid var(--mostaza);border-radius:12px;padding:9px 11px;margin:8px 0;font-weight:700;color:#6b4a0c}
+.alerta.roja{background:#fbe1dd;border-color:var(--rojo);color:#7a1d14}
+.stock{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:8px}
+.sc{background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.sc.low{border:2px solid var(--mostaza);background:#fffaf0}.sc.out{border:2px solid var(--rojo);background:#fdf0ee}
+.sc .nm{font-weight:800}
+.sc .q{font:800 30px Georgia,serif;line-height:1.1}
+.bar{height:9px;background:var(--soft);border-radius:6px;overflow:hidden;margin:6px 0 4px}
+.bar i{display:block;height:100%;background:var(--verde)}
+.sc.low .bar i{background:var(--mostaza)}.sc.out .bar i{background:var(--rojo)}
+.card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:6px 10px;overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th,td{padding:7px 5px;border-bottom:1px solid var(--line);text-align:left;font-size:13px;white-space:nowrap}
+th{font-size:11px;color:var(--muted);text-transform:uppercase}
+td.n,th.n{text-align:right}
+.hint{font-size:12px;color:var(--muted)}
+.btn{border:0;border-radius:10px;padding:11px 14px;font-weight:800;font-size:14px;background:var(--terra);color:#fff;box-shadow:0 2px 0 var(--terra-d);cursor:pointer;text-decoration:none;display:inline-block}
+.btn.sec{background:var(--soft);color:var(--ink);box-shadow:0 2px 0 #cdb58c}
+.modal{position:fixed;inset:0;background:rgba(30,20,10,.55);display:none;align-items:flex-end;justify-content:center;z-index:50}
+.modal.on{display:flex}
+.sheet{background:var(--card);width:100%;max-width:560px;border-radius:16px 16px 0 0;padding:16px 16px calc(16px + env(safe-area-inset-bottom))}
+@media(min-width:700px){.modal{align-items:center}.sheet{border-radius:16px}}
+.sheet h2{margin:0 0 6px}
+label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px;font-weight:600}
+input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10px;padding:11px 10px;background:#fff;width:100%}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom));transform:translateX(-50%);background:var(--ink);color:#fff;padding:11px 16px;border-radius:10px;font-weight:700;opacity:0;transition:.25s;pointer-events:none;z-index:70;max-width:92vw;text-align:center}
+.toast.on{opacity:1}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chip{border:1px solid var(--line);background:#fff;border-radius:20px;padding:7px 12px;font-weight:700;font-size:13px}
+.chip.on{background:var(--cuero);color:#fff;border-color:var(--cuero)}
+</style>
+</head>
+<body>
+<header>
+  <h1>🎩 Administrador</h1>
+  <span class="pill" id="h-net"></span>
+  <div class="sp"></div>
+  <button class="hbtn" onclick="cargar(true)">⟳</button>
+  <button class="hbtn" onclick="openSetup()">⚙️</button>
+</header>
+<div class="guarda"></div>
+<main>
+  <div class="hint" id="upd"></div>
+  <div id="alertas"></div>
+
+  <h2>Resultado del evento</h2>
+  <div class="kpis" id="kpis"></div>
+
+  <div class="row" style="display:flex;align-items:center;gap:8px;margin-top:16px">
+    <h2 style="margin:0">Porciones disponibles</h2><div class="sp"></div>
+  </div>
+  <div class="hint" style="margin:2px 2px 8px">Incluye las ventas de las dos cajas que ya se subieron. Aviso cuando quedan <b id="aviso-n">10</b> o menos.</div>
+  <div class="stock" id="stock"></div>
+
+  <h2>Cajas</h2>
+  <div class="chips" id="dias" style="margin-bottom:8px"></div>
+  <div class="card"><table id="cajas"></table></div>
+
+  <h2>Arqueos de cierre</h2>
+  <div class="card"><table id="cierres"></table></div>
+
+  <h2>Por plato</h2>
+  <div class="card"><table id="platos"></table></div>
+
+  <div style="margin-top:16px" id="links"></div>
+</main>
+
+<div class="modal" id="m-setup"><div class="sheet">
+  <h2>🎩 Acceso de administrador</h2>
+  <div class="hint">Panel de solo lectura: no cobra ni carga gastos.</div>
+  <label>Dirección del conector (URL del Apps Script)</label>
+  <input id="s-api" placeholder="https://script.google.com/macros/s/…/exec">
+  <label>Clave de administrador (hoja Config de la planilla)</label>
+  <input id="s-key" type="password" inputmode="numeric" autocomplete="off">
+  <div style="display:flex;gap:8px;margin-top:14px"><button class="btn" style="flex:1" onclick="saveSetup()">Entrar</button><button class="btn sec" id="s-cancel" onclick="closeM()">Cancelar</button></div>
+</div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const fmt=n=>'$ '+Math.round(n||0).toLocaleString('es-AR');
+const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let CFG=LS.get('pa_cfg',null), D=LS.get('pa_data',null), LOW=LS.get('pa_low',{}), DIA=LS.get('pa_dia','Todos'), busy=false;
+(function(){const q=new URLSearchParams(location.search);if(q.get('api')){CFG=Object.assign({api:'',key:''},CFG||{});CFG.api=q.get('api');LS.set('pa_cfg',CFG);history.replaceState(null,'',location.pathname)}})();
+const hace=iso=>{if(!iso)return '—';const m=Math.round((Date.now()-new Date(iso))/60000);return m<1?'recién':m<60?`hace ${m} min`:`hace ${Math.round(m/60)} h`};
+
+function render(){
+  const on=navigator.onLine, n=$('#h-net'); n.className='pill '+(on?'on':'off'); n.textContent=busy?'⟳ Actualizando':(on?'● En línea':'● Sin señal');
+  if(!D){$('#upd').textContent='Sin datos todavía. Conectate y tocá ⟳.';return}
+  $('#upd').textContent='Datos de la planilla · actualizado '+hace(D.ts)+(on?' · se refresca cada 30 s':' · sin señal, se muestra lo último');
+  $('#aviso-n').textContent=D.aviso;
+  // Alertas
+  const act=D.platos.filter(p=>p.activo&&p.quedan!=null);
+  const ago=act.filter(p=>p.quedan<=0), poc=act.filter(p=>p.quedan>0&&p.quedan<=D.aviso);
+  const viejas=D.cajas.filter(c=>c.sync&&(Date.now()-new Date(c.sync))>15*60000&&c.dia===diaActual());
+  $('#alertas').innerHTML=(ago.length?`<div class="alerta roja">⛔ Agotado: ${ago.map(p=>p.nombre).join(' · ')}</div>`:'')+
+    (poc.length?`<div class="alerta">⚠️ Quedan pocas: ${poc.map(p=>`${p.nombre} <b>${p.quedan}</b>`).join(' · ')}</div>`:'')+
+    (D.sinComp?`<div class="alerta" style="border-color:var(--azul);background:#e7f0f6;color:#244a63">📎 ${D.sinComp} gasto(s) sin comprobante</div>`:'');
+  // KPIs
+  const k=(l,v,s='',c='')=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div><div class="s">${s}</div></div>`;
+  $('#kpis').innerHTML=k('Ventas',fmt(D.ventas),`${D.tickets} tickets${D.anulados?` · ${D.anulados} anulados`:''}`)+k('Gastos',fmt(D.gastos),`${D.nGastos} cargados`)+
+    k('Resultado',fmt(D.resultado),D.ventas?`margen ${Math.round(D.resultado/D.ventas*100)}%`:'',D.resultado>=0?'pos':'neg')+
+    k('Consignación a pagar',fmt(D.pendCons))+k('Reintegros a pagar',fmt(D.pendRein));
+  // Stock
+  $('#stock').innerHTML=act.map(p=>{const pct=p.rinde?Math.min(100,Math.max(0,(p.vendidas/p.rinde)*100)):0,cls=p.quedan<=0?'out':(p.quedan<=D.aviso?'low':'');
+    return `<div class="sc ${cls}"><div class="nm">${p.nombre}</div><div class="q">${p.quedan<=0?'AGOTADO':p.quedan}</div><div class="bar"><i style="width:${pct}%"></i></div><div class="hint">Vendidas ${p.vendidas} de ${p.rinde} · ${fmt(p.ventas)}</div></div>`}).join('')||'<div class="hint">Cargá rinde y precio en la hoja Platos.</div>';
+  // Cajas
+  const dias=['Todos','Día 1','Día 2']; $('#dias').innerHTML=dias.map(d=>`<button class="chip ${DIA===d?'on':''}" onclick="DIA='${d}';LS.set('pa_dia',DIA);render()">${d}</button>`).join('');
+  const cs=D.cajas.filter(c=>DIA==='Todos'||c.dia===DIA);
+  const tot=cs.reduce((a,c)=>({t:a.t+c.tickets,v:a.v+c.total,e:a.e+(c.Efectivo||0),q:a.q+(c.Transferencia||0)+(c.QR||0),d:a.d+(c['Débito']||0)}),{t:0,v:0,e:0,q:0,d:0});
+  $('#cajas').innerHTML='<tr><th>Caja</th><th>Día</th><th class="n">Tickets</th><th class="n">Total</th><th class="n">Efectivo</th><th class="n">Transf+QR</th><th class="n">Débito</th><th>Último ticket</th><th>Subió</th></tr>'+
+    (cs.map(c=>{const old=c.sync&&(Date.now()-new Date(c.sync))>15*60000;return `<tr><td><b>${c.caja}</b></td><td>${c.dia}</td><td class="n">${c.tickets}</td><td class="n"><b>${fmt(c.total)}</b></td><td class="n">${fmt(c.Efectivo)}</td><td class="n">${fmt((c.Transferencia||0)+(c.QR||0))}</td><td class="n">${fmt(c['Débito'])}</td><td>${String(c.ultimo).slice(11,16)}</td><td class="${old?'neg':''}">${hace(c.sync)}</td></tr>`}).join('')||'<tr><td colspan="9" class="hint">Sin ventas todavía</td></tr>')+
+    (cs.length>1?`<tr><td><b>Total</b></td><td></td><td class="n"><b>${tot.t}</b></td><td class="n"><b>${fmt(tot.v)}</b></td><td class="n"><b>${fmt(tot.e)}</b></td><td class="n"><b>${fmt(tot.q)}</b></td><td class="n"><b>${fmt(tot.d)}</b></td><td></td><td></td></tr>`:'');
+  // Cierres
+  $('#cierres').innerHTML='<tr><th>Caja</th><th>Día</th><th>Cajero</th><th class="n">Efectivo sistema</th><th class="n">Contado</th><th class="n">Diferencia</th></tr>'+
+    D.cierres.map(c=>`<tr><td>${c.caja}</td><td>${c.dia}</td><td>${c.cajero||'—'}</td><td class="n">${fmt(c.efectivoSist)}</td><td class="n">${c.contado==null?'—':fmt(c.contado)}</td><td class="n ${c.dif?'neg':(c.dif===0?'pos':'')}">${c.dif==null?'—':(c.dif===0?'✓ 0':fmt(c.dif))}</td></tr>`).join('');
+  // Platos
+  $('#platos').innerHTML='<tr><th>Plato</th><th class="n">Precio</th><th class="n">Vendidas</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Resultado</th></tr>'+
+    D.platos.map(p=>`<tr><td>${p.nombre}${p.activo?'':' <span class="hint">(inactivo)</span>'}</td><td class="n">${fmt(p.precio)}</td><td class="n">${p.vendidas}</td><td class="n">${fmt(p.ventas)}</td><td class="n">${fmt(p.costo)}</td><td class="n ${p.resultado>=0?'pos':'neg'}">${fmt(p.resultado)}</td></tr>`).join('');
+  $('#links').innerHTML=D.url?`<a class="btn sec" href="${D.url}" target="_blank" rel="noopener">📊 Abrir la planilla</a>`:'';
+}
+function diaActual(){return DIA==='Todos'?null:DIA}
+function avisos(){
+  const msgs=[]; D.platos.filter(p=>p.activo&&p.quedan!=null).forEach(p=>{const lv=p.quedan<=0?2:(p.quedan<=D.aviso?1:0), prev=LOW[p.id]||0;
+    if(lv>prev) msgs.push(lv===2?`⛔ Se agotó ${p.nombre}`:`⚠️ Quedan ${p.quedan} de ${p.nombre}`); LOW[p.id]=lv;});
+  LS.set('pa_low',LOW); if(msgs.length){toast(msgs.join(' · '));try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+}
+async function cargar(manual){
+  if(busy) return; if(!CFG||!CFG.api||!CFG.key) return openSetup();
+  if(!navigator.onLine){ if(manual) toast('Sin señal: se muestran los últimos datos'); render(); return; }
+  busy=true; render();
+  try{
+    const c=new AbortController(); const t=setTimeout(()=>c.abort(),25000);
+    const r=await fetch(CFG.api+'?action=admin&key='+encodeURIComponent(CFG.key)+'&t='+Date.now(),{signal:c.signal,redirect:'follow'}).then(r=>r.json()).finally(()=>clearTimeout(t));
+    if(!r.ok){ if(/Clave/.test(r.error||'')){toast('Clave incorrecta');openSetup();} else throw new Error(r.error); }
+    else { D=r; LS.set('pa_data',D); avisos(); if(manual) toast('✓ Actualizado'); }
+  }catch(e){ if(manual) toast('No se pudo actualizar'); console.warn(e); }
+  finally{ busy=false; render(); }
+}
+function openSetup(){$('#s-api').value=CFG?CFG.api||'':'';$('#s-key').value=CFG?CFG.key||'':'';$('#s-cancel').style.display=CFG&&CFG.key?'inline-block':'none';$('#m-setup').classList.add('on')}
+function closeM(){$('#m-setup').classList.remove('on')}
+function saveSetup(){const api=$('#s-api').value.trim(),key=$('#s-key').value.trim(); if(!/^https:\/\//.test(api)) return toast('Revisá la URL'); if(!key) return toast('Ingresá la clave');
+  CFG={api,key}; LS.set('pa_cfg',CFG); closeM(); cargar(true)}
+let _tt;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),3000)}
+window.addEventListener('online',()=>cargar(false)); window.addEventListener('offline',render);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden) cargar(false)});
+setInterval(()=>{if(!document.hidden) cargar(false)},30000);
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+render(); if(!CFG||!CFG.key) openSetup(); else cargar(false);
+</script>
+</body>
+</html>

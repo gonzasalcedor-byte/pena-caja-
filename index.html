@@ -98,6 +98,10 @@ label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
 .empty{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:10px;padding:20px}
 .warn{background:#fff7e8;border:1px dashed var(--mostaza);border-radius:10px;padding:10px;font-size:13px;margin:8px 0}
 .menu button{display:block;width:100%;text-align:left;margin:6px 0}
+.alerta{background:#fff1d6;border:2px solid var(--mostaza);border-radius:12px;padding:8px 10px;margin-bottom:8px;font-size:13px;font-weight:700;color:#6b4a0c}
+.alerta.roja{background:#fbe1dd;border-color:var(--rojo);color:#7a1d14}
+.pbtn.low{border-color:var(--mostaza)}
+.pbtn .ag{position:absolute;inset:auto 6px 6px 6px;background:var(--rojo);color:#fff;border-radius:8px;font-size:11px;font-weight:800;padding:2px 0}
 </style>
 </head>
 <body>
@@ -125,6 +129,7 @@ label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
     </div>
 
     <div class="pstep" id="p1">
+      <div id="c-alert"></div>
       <div id="c-wrap" style="flex:1;min-height:0;display:flex"><div class="pgrid" id="c-grid" style="width:100%"></div></div>
       <div class="pbar">
         <button class="btn sec" style="background:#4a3426;color:#fff;box-shadow:none" onclick="clearCart()">Vaciar</button>
@@ -234,7 +239,8 @@ let DATA=LS.get('pena_data',null);        // {platos,reb,dia1,dia2,seq,lastSync}
 let TK=LS.get('pena_tickets',[]);         // tickets de este teléfono
 let SEQ=LS.get('pena_seq',{});            // último N° por caja-día (nunca se reinicia)
 let CI=LS.get('pena_cierres',[]);         // cierres de este teléfono
-const st={step:1,cart:{},dia:LS.get('pena_dia','Día 1'),liq:false,medio:'Efectivo',paga:null,syncing:false};
+const st={step:1,cart:{},dia:LS.get('pena_dia','Día 1'),liq:false,medio:'Efectivo',paga:null,syncing:false,low:LS.get('pena_low',{})};
+const aviso=()=>(DATA&&DATA.aviso)||10;
 function save(){LS.set('pena_tickets',TK);LS.set('pena_seq',SEQ);LS.set('pena_cierres',CI);LS.set('pena_data',DATA);LS.set('pena_cfg',CFG);LS.set('pena_dia',st.dia)}
 if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().catch(()=>{});
 
@@ -275,7 +281,8 @@ function render(){
   // Paso 1
   $('#c-wrap').className=st.liq?'liq':''; $('#c-wrap').style.cssText='flex:1;min-height:0;display:flex';
   $('#c-grid').innerHTML=platos().map(p=>{const q=st.cart[p.id]||0, r=quedan(p), rest=r==null?null:r-q;
-    return `<div class="pbtn ${q?'has':''} ${rest!=null&&rest<=0&&!q?'out':''}" onclick="addC('${p.id}')"><span class="mn" onclick="event.stopPropagation();decC('${p.id}')">−</span><span class="q">${q}</span><div class="nm">${p.nombre}</div><div class="un">${p.unidad||''}</div><div class="pr">${fmt(precio(p))}</div>${rest==null?'':`<div class="st">${rest<=10?'⚠️ ':''}Quedan ${rest}</div>`}</div>`}).join('');
+    return `<div class="pbtn ${q?'has':''} ${rest!=null&&rest<=0&&!q?'out':''} ${rest!=null&&rest<=aviso()?'low':''}" onclick="addC('${p.id}')"><span class="mn" onclick="event.stopPropagation();decC('${p.id}')">−</span><span class="q">${q}</span><div class="nm">${p.nombre}</div><div class="un">${p.unidad||''}</div><div class="pr">${fmt(precio(p))}</div>${rest==null?'':(rest<=0?'<div class="ag">AGOTADO</div>':`<div class="st">${rest<=aviso()?'⚠️ ':''}Quedan ${rest}</div>`)}</div>`}).join('');
+  rAlerta();
   $('#c-total').textContent=fmt(tot);
   $('#c-items').textContent=items.length?items.map(({p,q})=>q+'× '+p.nombre).join(' · '):'Tocá los platos para sumar';
   $('#c-next').disabled=!tot;
@@ -301,7 +308,27 @@ function rVuelto(){
 // ================= Acciones de caja =================
 function setDia(d){st.dia=d;LS.set('pena_dia',d);render()}
 function toggleLiq(){st.liq=!st.liq;st.paga=null;render()}
-function addC(id){st.cart[id]=(st.cart[id]||0)+1;st.paga=null;render()}
+function rAlerta(){
+  const low=platos().map(p=>({p,r:quedan(p)})).filter(x=>x.r!=null&&x.r<=aviso());
+  const el=$('#c-alert');
+  if(!low.length){el.innerHTML='';return}
+  const ago=low.filter(x=>x.r<=0), poc=low.filter(x=>x.r>0);
+  el.innerHTML=(ago.length?`<div class="alerta roja">⛔ Agotado: ${ago.map(x=>x.p.nombre).join(' · ')}</div>`:'')+(poc.length?`<div class="alerta">⚠️ Quedan pocas: ${poc.map(x=>x.p.nombre+' '+x.r).join(' · ')}</div>`:'');
+}
+// Aviso (toast + vibración) cuando un plato cruza el umbral o se agota
+function chequearAvisos(){
+  const nuevos=[];
+  platos().forEach(p=>{const r=quedan(p); if(r==null) return; const nivel=r<=0?2:(r<=aviso()?1:0); const prev=st.low[p.id]||0;
+    if(nivel>prev) nuevos.push(nivel===2?`⛔ Se agotó ${p.nombre}`:`⚠️ Quedan ${r} de ${p.nombre}`); st.low[p.id]=nivel;});
+  LS.set('pena_low',st.low);
+  if(nuevos.length){toast(nuevos.join(' · ')); try{navigator.vibrate&&navigator.vibrate([200,100,200])}catch(e){}}
+}
+function addC(id){
+  const p=platos().find(x=>x.id===id), r=quedan(p), q=st.cart[id]||0;
+  if(r!=null&&r-q<=0&&!st.override?.[id]){
+    return confirmar('Sin porciones',`Según el sistema no quedan porciones de ${p.nombre}. Confirmá con la cocina antes de cobrar. ¿Agregar igual?`,null,()=>{st.override=st.override||{};st.override[id]=true;addC(id)});
+  }
+  st.cart[id]=q+1;st.paga=null;render()}
 function decC(id){st.cart[id]=Math.max(0,(st.cart[id]||0)-1);st.paga=null;render()}
 function clearCart(){st.cart={};st.paga=null;$('#c-otro').value='';render()}
 function setMedio(m){st.medio=m;st.paga=null;$('#c-otro').value='';render()}
@@ -311,7 +338,7 @@ function goStep(n){
   if(n===2&&!cartTotal()) return toast('Elegí al menos un plato');
   st.step=n; render();
 }
-function nuevo(){st.cart={};st.paga=null;st.medio='Efectivo';$('#c-otro').value='';st.step=1;render()}
+function nuevo(){st.override={};st.cart={};st.paga=null;st.medio='Efectivo';$('#c-otro').value='';st.step=1;render()}
 function cobrar(){
   const tot=cartTotal(); if(!tot) return toast('El pedido está vacío');
   if(!CFG) return openSetup();
@@ -326,7 +353,7 @@ function cobrar(){
   $('#d-tit').textContent=`Ticket ${t.id} · ${t.medio}`; $('#d-tot').textContent=fmt(tot);
   const dv=$('#d-vuelto'); if(vuelto>0){dv.style.display='block';dv.className='vuelto';dv.innerHTML=`Entregar vuelto<b>${fmt(vuelto)}</b>`}else dv.style.display='none';
   $('#d-save').textContent=ok?(navigator.onLine?'Guardado en el teléfono · se sube solo':'Guardado en el teléfono · se sube cuando vuelva la señal'):'⚠️ No se pudo guardar: anotalo en papel';
-  st.step=3; render(); sync(false);
+  st.step=3; render(); chequearAvisos(); sync(false);
 }
 
 // ================= Sincronización =================
@@ -349,7 +376,7 @@ async function sync(manual){
     }
     const d=await fetchT(CFG.api+'?action=config&t='+Date.now()).then(r=>r.json());
     if(!d.ok) throw new Error(d.error||'Error del conector');
-    DATA={...d,lastSync:new Date().toISOString()}; save();
+    DATA={...d,lastSync:new Date().toISOString()}; save(); chequearAvisos();
     if(manual) toast('✓ Sincronizado'+(pendientes()?` (quedan ${pendientes()})`:''));
   }catch(e){
     if(manual) toast('No se pudo sincronizar: queda todo guardado en el teléfono');
@@ -359,7 +386,7 @@ async function sync(manual){
 function fetchT(url,opt={},ms=20000){const c=new AbortController();const t=setTimeout(()=>c.abort(),ms);return fetch(url,{...opt,signal:c.signal,redirect:'follow'}).finally(()=>clearTimeout(t))}
 window.addEventListener('online',()=>{render();sync(false)});
 window.addEventListener('offline',render);
-setInterval(()=>{if(pendientes()||!DATA||Date.now()-new Date(DATA.lastSync||0)>5*60000) sync(false)},45000);
+setInterval(()=>{if(!document.hidden) sync(false)},30000); // cada 30 s: sube ventas y trae lo vendido por la otra caja
 document.addEventListener('visibilitychange',()=>{if(!document.hidden) sync(false)});
 
 // ================= Cierre =================

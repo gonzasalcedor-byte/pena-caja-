@@ -64,6 +64,8 @@ input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);b
 .kpi{background:#fff;border:1px solid var(--line);border-left:4px solid var(--verde);border-radius:10px;padding:8px 10px}
 .kpi .l{font-size:11px;color:var(--muted);text-transform:uppercase}.kpi .v{font:800 19px Georgia,serif}
 .menu button{display:block;width:100%;text-align:left;margin:6px 0}
+.rline{display:grid;grid-template-columns:1fr 52px 120px;gap:6px;align-items:center;padding:4px 0;border-bottom:1px dashed var(--line);font-size:14px}
+.rline input{padding:8px;text-align:right}
 </style>
 </head>
 <body>
@@ -102,9 +104,14 @@ input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);b
       </div>
       <label>Rubro</label>
       <div class="chips" id="c-rubro"></div>
-      <label>Imputar a</label>
-      <select name="imputa" id="f-imputa" required></select>
-      <div class="hint">El plato al que corresponde el gasto, o "Generales" (pan, gas, descartables, canon…).</div>
+      <label>Imputar a <span class="hint" style="font-weight:400">(podés elegir varios)</span></label>
+      <div class="chips" id="c-imp"></div>
+      <div class="hint" style="margin-top:4px">El o los platos que usan esta compra (ej. el pan → los dos sándwiches), o "Generales" si es para todo (gas, descartables, canon…).</div>
+      <div class="cond" id="rep-box">
+        <div class="row"><b style="font-size:14px">Reparto del importe</b><div class="sp"></div><button type="button" class="btn sec sm" onclick="repDefault('rinde')">Por porciones</button><button type="button" class="btn sec sm" onclick="repDefault('igual')">Partes iguales</button></div>
+        <div id="rep-list" style="margin-top:6px"></div>
+        <div id="rep-check" style="margin-top:6px;font-weight:700;font-size:13px"></div>
+      </div>
     </div>
 
     <div class="card">
@@ -199,7 +206,7 @@ let CFG=LS.get('pg_cfg',null);      // {user:'JMA', api}
 let DATA=LS.get('pg_data',null);    // {imputables, pendientes, lastSync}
 let GS=LS.get('pg_gastos',[]);      // gastos cargados en este teléfono
 let PAGOS=LS.get('pg_pagos',[]);    // pagos marcados, por subir
-const st={rubro:'Carnes',modo:'Efectivo',foto:null,edit:null,syncing:false,tab:'nuevo'};
+const st={rubro:'Carnes',modo:'Efectivo',foto:null,edit:null,syncing:false,tab:'nuevo',imp:[],rep:{},repModo:'rinde'};
 function save(){LS.set('pg_cfg',CFG);LS.set('pg_data',DATA);LS.set('pg_gastos',GS);LS.set('pg_pagos',PAGOS)}
 const userName=()=>CFG?(USERS.find(u=>u.k===CFG.user)||{}).n||'':'';
 const hoy=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.getFullYear()}-${z(d.getMonth()+1)}-${z(d.getDate())}`};
@@ -231,11 +238,39 @@ function chipsModo(){
   if(on&&!f.impPend.value) f.impPend.value=f.importe.value;
 }
 function setModo(m){st.modo=m;chipsModo()}
-$('#f').elements.importe.addEventListener('input',e=>{if($('#f-cond').classList.contains('on'))$('#f').elements.impPend.value=e.target.value});
-function fillImputa(sel){const list=(DATA&&DATA.imputables&&DATA.imputables.length)?DATA.imputables:['Generales'];
-  $('#f-imputa').innerHTML='<option value="">Elegí…</option>'+list.map(x=>`<option ${x===sel?'selected':''}>${x}</option>`).join('')}
+$('#f').elements.importe.addEventListener('input',e=>{if($('#f-cond').classList.contains('on'))$('#f').elements.impPend.value=e.target.value; repDefault(st.repModo)});
+const imputables=()=>(DATA&&DATA.imputables&&DATA.imputables.length)?DATA.imputables:['Generales'];
+function fillImputa(){
+  $('#c-imp').innerHTML=imputables().map(x=>`<button type="button" class="chip ${st.imp.includes(x)?'on':''}" onclick='toggleImp(${JSON.stringify(x)})'>${x}</button>`).join('');
+  renderRep();
+}
+function toggleImp(x){
+  if(x==='Generales') st.imp=st.imp.includes(x)?[]:['Generales'];
+  else { st.imp=st.imp.filter(y=>y!=='Generales'); st.imp=st.imp.includes(x)?st.imp.filter(y=>y!==x):st.imp.concat([x]); }
+  repDefault(st.repModo,true); fillImputa();
+}
+function repDefault(modo,silent){
+  st.repModo=modo; const tot=+$('#f').elements.importe.value||0, list=st.imp.filter(x=>x!=='Generales'); st.rep={};
+  if(list.length<2){ if(!silent) renderRep(); return; }
+  const r=(DATA&&DATA.rindes)||{}; let pesos=list.map(x=>modo==='rinde'?(+r[x]||0):1);
+  if(pesos.every(p=>!p)) pesos=list.map(()=>1);
+  const sum=pesos.reduce((a,b)=>a+b,0); let acum=0;
+  list.forEach((x,i)=>{ const v=i<list.length-1?Math.round(tot*pesos[i]/sum):tot-acum; st.rep[x]=v; acum+=v; });
+  if(!silent) renderRep();
+}
+function renderRep(){
+  const list=st.imp.filter(x=>x!=='Generales'), box=$('#rep-box');
+  box.classList.toggle('on',list.length>1); if(list.length<2) return;
+  const tot=+$('#f').elements.importe.value||0, r=(DATA&&DATA.rindes)||{};
+  $('#rep-list').innerHTML=list.map(x=>`<div class="rline"><span>${x}${r[x]?`<div class="hint">${r[x]} porciones</div>`:''}</span><span class="hint" style="text-align:right">${tot?Math.round((st.rep[x]||0)/tot*100):0}%</span><input type="number" inputmode="decimal" value="${st.rep[x]??''}" oninput='st.rep[${JSON.stringify(x)}]=+this.value||0;repCheck()'></div>`).join('');
+  repCheck();
+}
+function repCheck(){const list=st.imp.filter(x=>x!=='Generales');const tot=+$('#f').elements.importe.value||0, s=list.reduce((a,x)=>a+(+st.rep[x]||0),0), el=$('#rep-check');
+  if(Math.abs(s-tot)<1){el.textContent='✓ El reparto suma el total ('+fmt(tot)+')';el.style.color='var(--verde)'}
+  else {el.textContent=(s<tot?'Faltan ':'Sobran ')+fmt(Math.abs(tot-s))+' para llegar al total';el.style.color='var(--rojo)'}
+  $$('#rep-list .rline').forEach((row,i)=>{const x=list[i];row.children[1].textContent=(tot?Math.round((st.rep[x]||0)/tot*100):0)+'%'})}
 function resetForm(){
-  const f=$('#f'); f.reset(); st.edit=null; st.foto=null; st.rubro='Carnes'; st.modo='Efectivo';
+  const f=$('#f'); f.reset(); st.edit=null; st.foto=null; st.rubro='Carnes'; st.modo='Efectivo'; st.imp=[]; st.rep={}; st.repModo='rinde';
   f.elements.fecha.value=hoy(); f.elements.comprador.value=userName();
   $('#f-tit').textContent='Nuevo gasto'; $('#f-cancel').style.display='none'; $('#b-save').textContent='💾 Guardar gasto';
   fillImputa(); chipsRubro(); chipsModo(); fotoPrev();
@@ -262,13 +297,15 @@ async function guardar(){
   if(!CFG||!CFG.user) return openSetup();
   const f=$('#f'), e=f.elements;
   if(!f.reportValidity()) return;
-  if(!e.imputa.value) return toast('Elegí a qué plato se imputa');
+  if(!st.imp.length) return toast('Elegí a qué plato o platos se imputa');
+  const lst=st.imp.filter(x=>x!=='Generales');
+  if(lst.length>1){ const s=lst.reduce((a,x)=>a+(+st.rep[x]||0),0); if(Math.abs(s-(+e.importe.value))>=1) return toast('El reparto entre platos no suma el total'); }
   const conPend=st.modo==='Consignación'||st.modo==='A reintegrar';
   if(conPend&&!e.venc.value) return toast('Cargá la fecha de pago / reintegro');
   const prev=st.edit?GS.find(x=>x.id===st.edit):null;
   const id=prev?prev.id:`G-${CFG.user}-${Date.now().toString(36).toUpperCase()}`;
   const g={id,rev:(prev?prev.rev:0)+1,fecha:e.fecha.value,comprador:e.comprador.value.trim(),proveedor:e.proveedor.value.trim(),rubro:st.rubro,
-    detalle:e.detalle.value.trim(),cant:e.cant.value,unidad:e.unidad.value,importe:+e.importe.value,imputa:e.imputa.value,modo:st.modo,
+    detalle:e.detalle.value.trim(),cant:e.cant.value,unidad:e.unidad.value,importe:+e.importe.value,imputa:st.imp.join(' + '),impList:st.imp.slice(),reparto:lst.length>1?lst.map(x=>({plato:x,importe:+st.rep[x]||0})):[],modo:st.modo,
     venc:conPend?e.venc.value:'',impPend:conPend?(+e.impPend.value||+e.importe.value):'',aQuien:st.modo==='A reintegrar'?(e.aQuien.value.trim()||e.comprador.value.trim()):'',
     estado:conPend?'Pendiente':'',usuario:userName(),alta:prev?prev.alta:ahora(),
     tieneFoto:!!st.foto||(prev&&prev.tieneFoto),compUrl:prev?prev.compUrl||'':'',synced:false};
@@ -281,7 +318,7 @@ async function guardar(){
 function editar(id){const g=GS.find(x=>x.id===id); if(!g||g.synced) return;
   const e=$('#f').elements; showTab('nuevo'); st.edit=id; st.rubro=g.rubro; st.modo=g.modo;
   ['fecha','comprador','proveedor','detalle','cant','unidad','importe','venc','impPend','aQuien'].forEach(k=>e[k].value=g[k]??'');
-  fillImputa(g.imputa); chipsRubro(); chipsModo();
+  st.imp=(g.impList||[g.imputa]).slice(); st.rep={}; (g.reparto||[]).forEach(x=>st.rep[x.plato]=x.importe); fillImputa(); chipsRubro(); chipsModo();
   idb.get(id).then(v=>{st.foto=v||null;fotoPrev()}).catch(()=>{});
   $('#f-tit').textContent='Editando gasto'; $('#f-cancel').style.display='inline-block'; $('#b-save').textContent='💾 Guardar cambios'; window.scrollTo(0,0)}
 function borrar(id){const g=GS.find(x=>x.id===id); if(!g||g.synced) return;
@@ -339,7 +376,7 @@ async function sync(manual){
     // Gastos de a uno (las fotos pesan)
     for(const g of GS.filter(x=>!x.synced)){
       let foto=null; if(g.tieneFoto&&!g.compUrl){ try{foto=await idb.get(g.id)}catch(e){} }
-      const {synced,tieneFoto,...send}=g;
+      const {synced,tieneFoto,impList,...send}=g;
       const r=await post({gastos:[{...send,foto}]});
       const ok=(r.gastos||[]).find(x=>x.id===g.id);
       const cur=GS.find(x=>x.id===g.id);
@@ -349,8 +386,8 @@ async function sync(manual){
     if(PAGOS.length){ const sent=PAGOS.slice(); const r=await post({pagos:sent}); const okIds=new Set((r.pagos||[]).map(x=>x.id)); PAGOS=PAGOS.filter(p=>!okIds.has(p.id)); save(); }
     const d=await fetchT(CFG.api+'?action=config&t='+Date.now(),{},20000).then(r=>r.json());
     if(!d.ok) throw new Error(d.error||'Error del conector');
-    DATA={imputables:d.imputables||[],pendientes:d.pendientes||[],lastSync:new Date().toISOString()}; save();
-    if(st.tab==='nuevo'&&!st.edit) fillImputa($('#f-imputa').value);
+    DATA={imputables:d.imputables||[],rindes:d.rindes||{},pendientes:d.pendientes||[],lastSync:new Date().toISOString()}; save();
+    if(st.tab==='nuevo') fillImputa();
   }catch(e){ err=e; console.warn(e); }
   finally{ st.syncing=false; render(); }
   if(manual) toast(err?'No se pudo sincronizar: queda guardado en el teléfono':'✓ Sincronizado');
