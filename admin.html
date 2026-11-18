@@ -62,6 +62,8 @@ input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10p
 .chip.on{background:var(--cuero);color:#fff;border-color:var(--cuero)}
 .sc .acc{display:flex;gap:6px;margin-top:8px;flex-wrap:wrap}
 .sc .acc button{flex:1;border:1px solid var(--line);background:#fff;border-radius:8px;padding:8px 4px;font-weight:800;font-size:12px;color:var(--ink)}
+svg text{font-family:-apple-system,Segoe UI,Roboto,sans-serif}
+.leg{display:flex;gap:12px;flex-wrap:wrap;font-size:12px;color:var(--muted);margin-top:4px}.leg i{display:inline-block;width:10px;height:10px;border-radius:2px;margin-right:4px;vertical-align:-1px}
 .sc .ctl{font-size:11px;font-weight:700;color:var(--azul);margin-top:2px}
 </style>
 </head>
@@ -78,8 +80,21 @@ input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10p
   <button class="btn" style="flex:1;background:var(--mostaza);color:var(--ink);box-shadow:0 2px 0 #9a6a12;padding:13px" onclick="irCobrar()">💵 Cobrar</button>
   <button class="btn" style="flex:1;background:var(--verde);box-shadow:0 2px 0 #34492a;padding:13px" onclick="irGasto()">🧾 Cargar gasto</button>
 </div>
+<div class="tabs" style="display:flex;gap:6px;padding:10px 10px 0;max-width:980px;margin:0 auto">
+  <button class="chip on" id="tab-panel" style="flex:1;padding:10px" onclick="verTab('panel')">🎩 Panel</button>
+  <button class="chip" id="tab-dash" style="flex:1;padding:10px" onclick="verTab('dash')">📈 Dashboard</button>
+</div>
 <main>
   <div class="hint" id="upd"></div>
+  <section id="v-dash" style="display:none">
+    <div class="kpis" id="d-kpis" style="margin-top:8px"></div>
+    <div class="card" style="margin-top:10px;padding:10px"><h2 style="margin:2px 0 6px">Ventas acumuladas vs gastos</h2><div class="hint">Cuando la línea verde cruza la roja, los gastos quedaron cubiertos.</div><div id="g-cruce"></div></div>
+    <div class="card" style="margin-top:10px;padding:10px"><h2 style="margin:2px 0 6px">Vendidas vs proyectadas</h2><div id="g-avance"></div></div>
+    <div class="card" style="margin-top:10px;padding:10px"><h2 style="margin:2px 0 6px">Ventas por hora</h2><div id="g-hora"></div></div>
+    <div class="card" style="margin-top:10px;padding:10px"><h2 style="margin:2px 0 6px">Rentabilidad por plato</h2><div id="g-res"></div><div style="overflow-x:auto;margin-top:8px"><table id="d-rent"></table></div></div>
+    <div class="card" style="margin-top:10px;padding:10px"><h2 style="margin:2px 0 6px">Medios de pago</h2><div id="g-medios"></div></div>
+  </section>
+  <section id="v-panel">
   <div id="alertas"></div>
 
   <h2>Resultado del evento</h2>
@@ -102,6 +117,7 @@ input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10p
   <div class="card"><table id="platos"></table></div>
 
   <div style="margin-top:16px" id="links"></div>
+  </section>
 </main>
 
 <div class="modal" id="m-setup"><div class="sheet">
@@ -175,9 +191,73 @@ function render(){
   // Platos
   $('#platos').innerHTML='<tr><th>Plato</th><th class="n">Precio</th><th class="n">Costo total</th><th class="n">Rinde</th><th class="n">Costo x porción<br>estimada</th><th class="n">Vendidas</th><th class="n">Costo x porción<br>vendida</th><th class="n">Ventas</th><th class="n">Resultado</th></tr>'+
     D.platos.map(p=>`<tr><td>${p.nombre}${p.activo?'':' <span class="hint">(inactivo)</span>'}</td><td class="n">${fmt(p.precio)}</td><td class="n">${fmt(p.costo)}</td><td class="n">${p.rinde||'—'}</td><td class="n">${p.rinde?fmt(p.costo/p.rinde):'—'}</td><td class="n">${p.vendidas}</td><td class="n"><b>${p.vendidas?fmt(p.costo/p.vendidas):'—'}</b></td><td class="n">${fmt(p.ventas)}</td><td class="n ${p.resultado>=0?'pos':'neg'}">${fmt(p.resultado)}</td></tr>`).join('');
+  if(TAB==='dash') rDash();
   $('#links').innerHTML=D.url?`<a class="btn sec" href="${D.url}" target="_blank" rel="noopener">📊 Abrir la planilla</a>`:'';
 }
 function diaActual(){return DIA==='Todos'?null:DIA}
+// ================= Dashboard (gráficos SVG propios: funcionan sin internet) =================
+let TAB=LS.get('pa_tab','panel');
+function verTab(t){TAB=t;LS.set('pa_tab',t);$('#v-dash').style.display=t==='dash'?'block':'none';$('#v-panel').style.display=t==='panel'?'block':'none';
+  $('#tab-dash').classList.toggle('on',t==='dash');$('#tab-panel').classList.toggle('on',t==='panel');if(t==='dash')rDash()}
+const k$=n=>{const a=Math.abs(n);return (n<0?'-':'')+(a>=1e6?'$'+(a/1e6).toFixed(1)+'M':a>=1e3?'$'+Math.round(a/1e3)+'k':'$'+Math.round(a))};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function W(){return Math.min(940,(document.querySelector('main').clientWidth||360)-24)}
+function rDash(){
+  if(!D||!D.dash){$('#d-kpis').innerHTML='<div class="hint">Sin datos todavía. Conectate y tocá ⟳ (requiere conector versión 4.8).</div>';return}
+  const d=D.dash, res=d.ventas-d.gastos, proy=d.platos.filter(p=>p.activo).reduce((a,p)=>a+p.rinde,0), vend=d.platos.reduce((a,p)=>a+p.vend,0);
+  const k=(l,v,s='',c='')=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div><div class="s">${s}</div></div>`;
+  $('#d-kpis').innerHTML=k('Ventas',fmt(d.ventas),`${d.tickets} tickets`)+k('Gastos',fmt(d.gastos))+k('Resultado',fmt(res),d.ventas?`margen ${Math.round(res/d.ventas*100)}%`:'',res>=0?'pos':'neg')+
+    k('Gastos cubiertos',d.gastos?Math.round(d.ventas/d.gastos*100)+'%':'—',d.gastos===0?'sin gastos cargados':(d.cubierto?'✓ el '+d.cubierto:'faltan '+fmt(d.gastos-d.ventas)),d.cubierto?'pos':'')+
+    k('Porciones',`${vend} / ${proy}`,proy?`${Math.round(vend/proy*100)}% de lo proyectado`:'');
+  const w=W();
+  // --- Línea: acumulado vs gastos
+  (()=>{const s=d.serie, h=220, pl=46, pr=26, pt=12, pb=38;
+    if(!s.length){$('#g-cruce').innerHTML='<div class="hint">Sin ventas todavía.</div>';return}
+    const max=Math.max(d.gastos,...s.map(x=>x[2]))*1.1||1, n=s.length, X=i=>pl+(n===1?(w-pl-pr)/2:i*(w-pl-pr)/(n-1)), Y=v=>pt+(h-pt-pb)*(1-v/max);
+    let g=`<svg width="${w}" height="${h}">`;
+    for(let i=0;i<=4;i++){const v=max*i/4;g+=`<line x1="${pl}" x2="${w-pr}" y1="${Y(v)}" y2="${Y(v)}" stroke="#e6dccd"/><text x="${pl-4}" y="${Y(v)+4}" font-size="10" text-anchor="end" fill="#7a5f48">${k$(v)}</text>`}
+    g+=`<line x1="${pl}" x2="${w-pr}" y1="${Y(d.gastos)}" y2="${Y(d.gastos)}" stroke="#a3271c" stroke-width="2" stroke-dasharray="6 4"/>`;
+    g+=`<polyline fill="none" stroke="#4d6b3a" stroke-width="3" points="${s.map((x,i)=>X(i)+','+Y(x[2])).join(' ')}"/>`;
+    s.forEach((x,i)=>{g+=`<circle cx="${X(i)}" cy="${Y(x[2])}" r="3" fill="#4d6b3a"/>`; if(n<=12||i%Math.ceil(n/10)===0) g+=`<text x="${X(i)}" y="${h-pb+14}" font-size="9" text-anchor="${i===n-1&&n>1?'end':(i===0&&n>1?'start':'middle')}" fill="#7a5f48">${esc(x[0].replace('Día ','D'))}</text>`});
+    const ci=s.findIndex(x=>x[2]>=d.gastos&&d.gastos>0); if(ci>=0) g+=`<circle cx="${X(ci)}" cy="${Y(s[ci][2])}" r="7" fill="none" stroke="#c9902c" stroke-width="3"/>`;
+    g+='</svg>'; $('#g-cruce').innerHTML=g+`<div class="leg"><span><i style="background:#4d6b3a"></i>Ventas acumuladas</span><span><i style="background:#a3271c"></i>Gastos ${fmt(d.gastos)}</span>${ci>=0?'<span><i style="background:#c9902c"></i>Gastos cubiertos</span>':''}</div>`})();
+  // --- Barras horizontales: vendidas vs proyectadas
+  (()=>{const ps=d.platos.filter(p=>p.activo); if(!ps.length){$('#g-avance').innerHTML='';return}
+    const lw=Math.min(140,w*.36), bw=w-lw-96, rh=34, max=Math.max(...ps.map(p=>Math.max(p.rinde,p.vend)),1);
+    let g=`<svg width="${w}" height="${ps.length*rh+6}">`;
+    ps.forEach((p,i)=>{const y=i*rh+4, pct=p.rinde?Math.round(p.vend/p.rinde*100):0;
+      g+=`<text x="0" y="${y+15}" font-size="12" fill="#2a1a10">${esc(p.nombre.length>22?p.nombre.slice(0,21)+'…':p.nombre)}</text>`;
+      g+=`<rect x="${lw}" y="${y+2}" width="${bw*p.rinde/max}" height="18" rx="4" fill="#ead9bb"/><rect x="${lw}" y="${y+5}" width="${bw*p.vend/max}" height="12" rx="3" fill="#9e2a1e"/>`;
+      g+=`<text x="${lw+bw*Math.max(p.rinde,p.vend)/max+6}" y="${y+16}" font-size="11" fill="#7a5f48">${p.vend}/${p.rinde||'—'}${p.rinde?' · '+pct+'%':''}</text>`});
+    $('#g-avance').innerHTML=g+'</svg><div class="leg"><span><i style="background:#9e2a1e"></i>Vendidas</span><span><i style="background:#ead9bb"></i>Proyectadas (rinde)</span></div>'})();
+  // --- Columnas: ventas por hora
+  (()=>{const s=d.serie; if(!s.length){$('#g-hora').innerHTML='<div class="hint">Sin ventas todavía.</div>';return}
+    const h=180, pl=46, pb=34, pt=10, max=Math.max(...s.map(x=>x[1]),1)*1.1, n=s.length, cw=(w-pl-8)/n;
+    let g=`<svg width="${w}" height="${h}">`;
+    for(let i=0;i<=3;i++){const v=max*i/3,y=pt+(h-pt-pb)*(1-i/3);g+=`<line x1="${pl}" x2="${w}" y1="${y}" y2="${y}" stroke="#e6dccd"/><text x="${pl-4}" y="${y+4}" font-size="10" text-anchor="end" fill="#7a5f48">${k$(v)}</text>`}
+    s.forEach((x,i)=>{const bh=(h-pt-pb)*x[1]/max;g+=`<rect x="${pl+i*cw+cw*.15}" y="${h-pb-bh}" width="${cw*.7}" height="${bh}" rx="3" fill="${x[0].startsWith('Día 2')?'#35566e':'#c9902c'}"/>`;
+      if(n<=12||i%Math.ceil(n/10)===0) g+=`<text x="${pl+i*cw+cw/2}" y="${h-pb+14}" font-size="9" text-anchor="middle" fill="#7a5f48">${esc(x[0].replace('Día ','D'))}</text>`});
+    $('#g-hora').innerHTML=g+'</svg><div class="leg"><span><i style="background:#c9902c"></i>Día 1</span><span><i style="background:#35566e"></i>Día 2</span></div>'})();
+  // --- Resultado por plato (positivo/negativo) + tabla
+  (()=>{const ps=d.platos; const lw=Math.min(140,w*.36), bw=(w-lw-50), rh=30, max=Math.max(...ps.map(p=>Math.abs(p.resultado)),1), zero=lw+bw/2;
+    let g=`<svg width="${w}" height="${ps.length*rh+6}"><line x1="${zero}" x2="${zero}" y1="0" y2="${ps.length*rh+6}" stroke="#cdb58c"/>`;
+    ps.forEach((p,i)=>{const y=i*rh+4, len=(bw/2)*Math.abs(p.resultado)/max, x=p.resultado>=0?zero:zero-len;
+      g+=`<text x="0" y="${y+15}" font-size="12" fill="#2a1a10">${esc(p.nombre.length>22?p.nombre.slice(0,21)+'…':p.nombre)}</text><rect x="${x}" y="${y+3}" width="${len}" height="16" rx="3" fill="${p.resultado>=0?'#4d6b3a':'#a3271c'}"/>`;
+      g+=`<text x="${p.resultado>=0?zero+len+4:zero+4}" y="${y+15}" font-size="11" text-anchor="start" fill="${p.resultado>=0?'#2a1a10':'#a3271c'}">${k$(p.resultado)}</text>`});
+    $('#g-res').innerHTML=g+'</svg>';
+    $('#d-rent').innerHTML='<tr><th>Plato</th><th class="n">Precio</th><th class="n">Costo x porción<br>estimada</th><th class="n">Costo x porción<br>vendida</th><th class="n">Margen x<br>porción</th><th class="n">Vendidas</th><th class="n">Resultado</th><th class="n">Margen</th></tr>'+
+      ps.map(p=>`<tr><td>${esc(p.nombre)}</td><td class="n">${fmt(p.precio)}</td><td class="n">${p.rinde?fmt(p.cEst):'—'}</td><td class="n">${p.vend?fmt(p.cReal):'—'}</td><td class="n ${p.margenPorcion>=0?'pos':'neg'}">${fmt(p.margenPorcion)}</td><td class="n">${p.vend}</td><td class="n ${p.resultado>=0?'pos':'neg'}"><b>${fmt(p.resultado)}</b></td><td class="n">${p.ventas?Math.round(p.margen*100)+'%':'—'}</td></tr>`).join('')})();
+  // --- Donut medios de pago
+  (()=>{const m=d.medios, tot=m.reduce((a,x)=>a+x[1],0), cols=['#4d6b3a','#35566e','#c9902c','#9e2a1e'];
+    if(!tot){$('#g-medios').innerHTML='<div class="hint">Sin ventas todavía.</div>';return}
+    const R=70, r0=42, cx=80, cy=80; let ang=-Math.PI/2, g=`<svg width="${Math.min(w,360)}" height="160">`;
+    m.forEach((x,i)=>{if(!x[1])return; const a2=ang+2*Math.PI*x[1]/tot, big=a2-ang>Math.PI?1:0, p=(a,rr)=>[cx+rr*Math.cos(a),cy+rr*Math.sin(a)];
+      const [x1,y1]=p(ang,R),[x2,y2]=p(a2,R),[x3,y3]=p(a2,r0),[x4,y4]=p(ang,r0);
+      g+= x[1]===tot?`<circle cx="${cx}" cy="${cy}" r="${(R+r0)/2}" fill="none" stroke="${cols[i]}" stroke-width="${R-r0}"/>`:`<path d="M${x1} ${y1} A${R} ${R} 0 ${big} 1 ${x2} ${y2} L${x3} ${y3} A${r0} ${r0} 0 ${big} 0 ${x4} ${y4}Z" fill="${cols[i]}"/>`; ang=a2});
+    m.forEach((x,i)=>{g+=`<rect x="170" y="${28+i*26}" width="12" height="12" rx="2" fill="${cols[i]}"/><text x="188" y="${38+i*26}" font-size="12" fill="#2a1a10">${x[0]}: ${k$(x[1])} (${Math.round(x[1]/tot*100)}%)</text>`});
+    $('#g-medios').innerHTML=g+'</svg>'})();
+}
+window.addEventListener('resize',()=>{if(TAB==='dash')rDash()});
 // ---- Control de porciones ----
 let CT=null;
 function abrirCtrl(id,tipo){
@@ -245,7 +325,7 @@ window.addEventListener('online',()=>cargar(false)); window.addEventListener('of
 document.addEventListener('visibilitychange',()=>{if(!document.hidden) cargar(false)});
 setInterval(()=>{if(!document.hidden) cargar(false)},30000);
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-render(); if(!CFG||!CFG.key||!CFG.user) openSetup(); else cargar(false);
+verTab(TAB); render(); if(!CFG||!CFG.key||!CFG.user) openSetup(); else cargar(false);
 </script>
 </body>
 </html>
