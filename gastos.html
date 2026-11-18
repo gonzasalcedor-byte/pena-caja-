@@ -73,6 +73,7 @@ input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);b
   <h1>🧾 Gastos <span id="h-user"></span></h1>
   <span class="pill" id="h-net"></span>
   <div class="sp"></div>
+  <button class="hbtn" id="h-panel" style="display:none" onclick="location.href='admin.html'">🎩</button>
   <button class="hbtn" onclick="sync(true)">⟳</button>
   <button class="hbtn" onclick="openMenu()">☰</button>
 </header>
@@ -331,6 +332,7 @@ async function verFoto(id){const g=GS.find(x=>x.id===id); $('#mf-tit').textConte
 
 // ================= Render =================
 function render(){
+  try{const pa=JSON.parse(localStorage.getItem('pa_cfg')||'null');$('#h-panel').style.display=pa&&pa.key?'inline-block':'none'}catch(e){}
   $('#h-user').textContent=CFG&&CFG.user?'· '+userName().split(' ')[0]:'';
   const on=navigator.onLine, pend=GS.filter(g=>!g.synced).length+PAGOS.length;
   const n=$('#h-net'); n.className='pill '+(on?'on':'off');

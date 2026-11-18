@@ -256,7 +256,7 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 const platos=()=>(DATA&&DATA.platos)||[];
 const precio=p=>st.liq?p.precioLiq:p.precio;
 const pendientes=()=>TK.filter(t=>!t.synced).length+CI.filter(c=>!c.synced).length;
-const esAdmin=()=>!!(CFG&&CFG.caja==='C9');
+const esAdmin=()=>!!(CFG&&(CFG.caja==='C9'||CFG.caja==='C8'));
 // Quedan = lo que informa la planilla (control por turno o rinde total, ya con las ventas subidas de todas las cajas)
 //          menos las ventas de este teléfono que todavía no se subieron
 function quedan(p){
@@ -270,7 +270,7 @@ const now=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.get
 
 // ================= Render =================
 function render(){
-  $('#h-caja').textContent=CFG?(esAdmin()?'Admin':CFG.caja)+(CFG.cajero&&!esAdmin()?' · '+CFG.cajero:''):'';
+  $('#h-caja').textContent=CFG?(esAdmin()?'Admin · '+(CFG.cajero||'').split(' ')[0]:CFG.caja+(CFG.cajero?' · '+CFG.cajero:'')):'';
   $('#h-panel').style.display=esAdmin()?'inline-block':'none';
   const on=navigator.onLine, pend=pendientes();
   const net=$('#h-net'); net.className='pill '+(on?'on':'off');
@@ -424,7 +424,7 @@ function pedirAnular(id){confirmar('Anular ticket',`¿Anular el ticket ${id}? Qu
 // ================= Menú, configuración, respaldo =================
 function openMenu(){$('#mn-info').innerHTML=`Caja <b>${CFG?CFG.caja:'—'}</b> · ${CFG&&CFG.cajero||'sin cajero'}<br>Tickets en este teléfono: ${TK.length} · por subir: ${pendientes()}<br>Última sincronización: ${DATA&&DATA.lastSync?new Date(DATA.lastSync).toLocaleString('es-AR'):'nunca'}`;$('#m-menu').classList.add('on')}
 function openSetup(){closeM('m-menu');const c=CFG||{caja:'C1',cajero:'',api:''};st._caja=c.caja;
-  $('#s-caja').innerHTML=(c.caja==='C9'?['C9']:['C1','C2']).map(k=>`<button class="chip ${st._caja===k?'on':''}" onclick="st._caja='${k}';openSetup()">${k==='C9'?'Caja Admin':k}</button>`).join('');
+  $('#s-caja').innerHTML=(['C8','C9'].includes(c.caja)?[c.caja]:['C1','C2']).map(k=>`<button class="chip ${st._caja===k?'on':''}" onclick="st._caja='${k}';openSetup()">${['C8','C9'].includes(k)?'Caja Admin':k}</button>`).join('');
   if(!$('#m-setup').classList.contains('on')){$('#s-cajero').value=c.cajero;$('#s-api').value=c.api}
   $('#s-cancel').style.display=CFG&&CFG.api?'inline-block':'none';
   const pend=TK.some(t=>!t.synced&&t.caja!==st._caja); const w=$('#s-warn'); w.style.display=pend?'block':'none'; w.textContent=pend?'Hay ventas de la otra caja sin subir en este teléfono. Sincronizá antes de cambiar de caja.':'';

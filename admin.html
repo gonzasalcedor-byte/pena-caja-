@@ -67,14 +67,17 @@ input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10p
 </head>
 <body>
 <header>
-  <h1>🎩 Administrador</h1>
+  <h1>🎩 <span id="h-quien">Administrador</span></h1>
   <span class="pill" id="h-net"></span>
   <div class="sp"></div>
-  <button class="hbtn" style="background:var(--mostaza);color:var(--ink);white-space:nowrap" onclick="irCobrar()">💵 Cobrar</button>
   <button class="hbtn" onclick="cargar(true)">⟳</button>
   <button class="hbtn" onclick="openSetup()">⚙️</button>
 </header>
 <div class="guarda"></div>
+<div style="display:flex;gap:8px;padding:10px 10px 0;max-width:980px;margin:0 auto">
+  <button class="btn" style="flex:1;background:var(--mostaza);color:var(--ink);box-shadow:0 2px 0 #9a6a12;padding:13px" onclick="irCobrar()">💵 Cobrar</button>
+  <button class="btn" style="flex:1;background:var(--verde);box-shadow:0 2px 0 #34492a;padding:13px" onclick="irGasto()">🧾 Cargar gasto</button>
+</div>
 <main>
   <div class="hint" id="upd"></div>
   <div id="alertas"></div>
@@ -103,7 +106,9 @@ input{font:inherit;font-size:16px;border:1px solid var(--line);border-radius:10p
 
 <div class="modal" id="m-setup"><div class="sheet">
   <h2>🎩 Acceso de administrador</h2>
-  <div class="hint">Panel de solo lectura: no cobra ni carga gastos.</div>
+  <div class="hint">Desde el panel podés ver todo, cobrar como Caja Admin y cargar gastos.</div>
+  <label>¿Quién sos?</label>
+  <div class="chips" id="s-user"></div>
   <label>Dirección del conector (URL del Apps Script)</label>
   <input id="s-api" placeholder="https://script.google.com/macros/s/…/exec">
   <label>Clave de administrador (hoja Config de la planilla)</label>
@@ -129,6 +134,7 @@ let CFG=LS.get('pa_cfg',null), D=LS.get('pa_data',null), LOW=LS.get('pa_low',{})
 const hace=iso=>{if(!iso)return '—';const m=Math.round((Date.now()-new Date(iso))/60000);return m<1?'recién':m<60?`hace ${m} min`:`hace ${Math.round(m/60)} h`};
 
 function render(){
+  $('#h-quien').textContent=yo()?yo().n.split(' ')[0]+' · Admin':'Administrador';
   const on=navigator.onLine, n=$('#h-net'); n.className='pill '+(on?'on':'off'); n.textContent=busy?'⟳ Actualizando':(on?'● En línea':'● Sin señal');
   if(!D){$('#upd').textContent='Sin datos todavía. Conectate y tocá ⟳.';return}
   $('#upd').textContent='Datos de la planilla · actualizado '+hace(D.ts)+(on?' · se refresca cada 30 s':' · sin señal, se muestra lo último');
@@ -145,7 +151,9 @@ function render(){
   const k=(l,v,s='',c='')=>`<div class="kpi"><div class="l">${l}</div><div class="v ${c}">${v}</div><div class="s">${s}</div></div>`;
   $('#kpis').innerHTML=k('Ventas',fmt(D.ventas),`${D.tickets} tickets${D.anulados?` · ${D.anulados} anulados`:''}`)+k('Gastos',fmt(D.gastos),`${D.nGastos} cargados`)+
     k('Resultado',fmt(D.resultado),D.ventas?`margen ${Math.round(D.resultado/D.ventas*100)}%`:'',D.resultado>=0?'pos':'neg')+
-    k('Consignación a pagar',fmt(D.pendCons))+k('Reintegros a pagar',fmt(D.pendRein));
+    k('Consignación a pagar',fmt(D.pendCons))+k('Reintegros a pagar',fmt(D.pendRein))+
+    (()=>{const pv=D.platos.reduce((x,p)=>x+p.vendidas,0), pe=D.platos.filter(p=>p.activo).reduce((x,p)=>x+p.rinde,0);
+      return k('Costo x porción vendida',pv?fmt(D.gastos/pv):'—',`${pv} porciones vendidas`)+k('Costo x porción estimada',pe?fmt(D.gastos/pe):'—',`sobre ${pe} porciones de rinde`)})();
   // Stock
   $('#stock').innerHTML=actAll.map(p=>{const tope=p.control?(p.fijado+p.sumas):(p.rinde+p.sumas), vend=p.control?p.vendidasDesde:p.vendidas;
     const pct=tope?Math.min(100,Math.max(0,(vend/tope)*100)):0, cls=p.quedan==null?'':(p.quedan<=0?'out':(p.quedan<=D.aviso?'low':''));
@@ -157,14 +165,14 @@ function render(){
   const cs=D.cajas.filter(c=>DIA==='Todos'||c.dia===DIA);
   const tot=cs.reduce((a,c)=>({t:a.t+c.tickets,v:a.v+c.total,e:a.e+(c.Efectivo||0),q:a.q+(c.Transferencia||0)+(c.QR||0),d:a.d+(c['Débito']||0)}),{t:0,v:0,e:0,q:0,d:0});
   $('#cajas').innerHTML='<tr><th>Caja</th><th>Día</th><th class="n">Tickets</th><th class="n">Total</th><th class="n">Efectivo</th><th class="n">Transf+QR</th><th class="n">Débito</th><th>Último ticket</th><th>Subió</th></tr>'+
-    (cs.map(c=>{const old=c.sync&&(Date.now()-new Date(c.sync))>15*60000;return `<tr><td><b>${c.caja==='C9'?'Admin':c.caja}</b></td><td>${c.dia}</td><td class="n">${c.tickets}</td><td class="n"><b>${fmt(c.total)}</b></td><td class="n">${fmt(c.Efectivo)}</td><td class="n">${fmt((c.Transferencia||0)+(c.QR||0))}</td><td class="n">${fmt(c['Débito'])}</td><td>${String(c.ultimo).slice(11,16)}</td><td class="${old?'neg':''}">${hace(c.sync)}</td></tr>`}).join('')||'<tr><td colspan="9" class="hint">Sin ventas todavía</td></tr>')+
+    (cs.map(c=>{const old=c.sync&&(Date.now()-new Date(c.sync))>15*60000;return `<tr><td><b>${CAJA_ADMIN[c.caja]||c.caja}</b></td><td>${c.dia}</td><td class="n">${c.tickets}</td><td class="n"><b>${fmt(c.total)}</b></td><td class="n">${fmt(c.Efectivo)}</td><td class="n">${fmt((c.Transferencia||0)+(c.QR||0))}</td><td class="n">${fmt(c['Débito'])}</td><td>${String(c.ultimo).slice(11,16)}</td><td class="${old?'neg':''}">${hace(c.sync)}</td></tr>`}).join('')||'<tr><td colspan="9" class="hint">Sin ventas todavía</td></tr>')+
     (cs.length>1?`<tr><td><b>Total</b></td><td></td><td class="n"><b>${tot.t}</b></td><td class="n"><b>${fmt(tot.v)}</b></td><td class="n"><b>${fmt(tot.e)}</b></td><td class="n"><b>${fmt(tot.q)}</b></td><td class="n"><b>${fmt(tot.d)}</b></td><td></td><td></td></tr>`:'');
   // Cierres
   $('#cierres').innerHTML='<tr><th>Caja</th><th>Día</th><th>Cajero</th><th class="n">Efectivo sistema</th><th class="n">Contado</th><th class="n">Diferencia</th></tr>'+
-    D.cierres.map(c=>`<tr><td>${c.caja==='C9'?'Admin':c.caja}</td><td>${c.dia}</td><td>${c.cajero||'—'}</td><td class="n">${fmt(c.efectivoSist)}</td><td class="n">${c.contado==null?'—':fmt(c.contado)}</td><td class="n ${c.dif?'neg':(c.dif===0?'pos':'')}">${c.dif==null?'—':(c.dif===0?'✓ 0':fmt(c.dif))}</td></tr>`).join('');
+    D.cierres.map(c=>`<tr><td>${CAJA_ADMIN[c.caja]||c.caja}</td><td>${c.dia}</td><td>${c.cajero||'—'}</td><td class="n">${fmt(c.efectivoSist)}</td><td class="n">${c.contado==null?'—':fmt(c.contado)}</td><td class="n ${c.dif?'neg':(c.dif===0?'pos':'')}">${c.dif==null?'—':(c.dif===0?'✓ 0':fmt(c.dif))}</td></tr>`).join('');
   // Platos
-  $('#platos').innerHTML='<tr><th>Plato</th><th class="n">Precio</th><th class="n">Vendidas</th><th class="n">Ventas</th><th class="n">Costo</th><th class="n">Resultado</th></tr>'+
-    D.platos.map(p=>`<tr><td>${p.nombre}${p.activo?'':' <span class="hint">(inactivo)</span>'}</td><td class="n">${fmt(p.precio)}</td><td class="n">${p.vendidas}</td><td class="n">${fmt(p.ventas)}</td><td class="n">${fmt(p.costo)}</td><td class="n ${p.resultado>=0?'pos':'neg'}">${fmt(p.resultado)}</td></tr>`).join('');
+  $('#platos').innerHTML='<tr><th>Plato</th><th class="n">Precio</th><th class="n">Costo total</th><th class="n">Rinde</th><th class="n">Costo x porción<br>estimada</th><th class="n">Vendidas</th><th class="n">Costo x porción<br>vendida</th><th class="n">Ventas</th><th class="n">Resultado</th></tr>'+
+    D.platos.map(p=>`<tr><td>${p.nombre}${p.activo?'':' <span class="hint">(inactivo)</span>'}</td><td class="n">${fmt(p.precio)}</td><td class="n">${fmt(p.costo)}</td><td class="n">${p.rinde||'—'}</td><td class="n">${p.rinde?fmt(p.costo/p.rinde):'—'}</td><td class="n">${p.vendidas}</td><td class="n"><b>${p.vendidas?fmt(p.costo/p.vendidas):'—'}</b></td><td class="n">${fmt(p.ventas)}</td><td class="n ${p.resultado>=0?'pos':'neg'}">${fmt(p.resultado)}</td></tr>`).join('');
   $('#links').innerHTML=D.url?`<a class="btn sec" href="${D.url}" target="_blank" rel="noopener">📊 Abrir la planilla</a>`:'';
 }
 function diaActual(){return DIA==='Todos'?null:DIA}
@@ -192,11 +200,16 @@ async function enviarCtrl(){
 }
 // ---- Cobrar como Caja Admin ----
 function irCobrar(){
-  if(!CFG||!CFG.api) return openSetup();
-  const c=LS.get('pena_cfg',null), tk=LS.get('pena_tickets',[]);
-  if(c&&c.caja&&c.caja!=='C9'&&tk.some(t=>!t.synced)) return toast(`Este teléfono tiene ventas de la caja ${c.caja} sin subir. Sincronizá esa caja primero.`);
-  LS.set('pena_cfg',{caja:'C9',cajero:'Administrador',api:CFG.api});
+  if(!CFG||!CFG.api||!yo()) return openSetup();
+  const mia=yo().caja, c=LS.get('pena_cfg',null), tk=LS.get('pena_tickets',[]);
+  if(c&&c.caja&&c.caja!==mia&&tk.some(t=>!t.synced)) return toast(`Este teléfono tiene ventas de la caja ${c.caja} sin subir. Sincronizá esa caja primero.`);
+  LS.set('pena_cfg',{caja:mia,cajero:yo().n,api:CFG.api});
   location.href='./';
+}
+function irGasto(){
+  if(!CFG||!CFG.api||!yo()) return openSetup();
+  LS.set('pg_cfg',{user:CFG.user,api:CFG.api});
+  location.href='gastos.html';
 }
 function avisos(){
   const msgs=[]; D.platos.filter(p=>p.activo&&p.quedan!=null).forEach(p=>{const lv=p.quedan<=0?2:(p.quedan<=D.aviso?1:0), prev=LOW[p.id]||0;
@@ -215,16 +228,22 @@ async function cargar(manual){
   }catch(e){ if(manual) toast('No se pudo actualizar'); console.warn(e); }
   finally{ busy=false; render(); }
 }
-function openSetup(){$('#s-api').value=CFG?CFG.api||'':'';$('#s-key').value=CFG?CFG.key||'':'';$('#s-cancel').style.display=CFG&&CFG.key?'inline-block':'none';$('#m-setup').classList.add('on')}
+const ADMINS=[{k:'GSR',n:'Gonzalo Salcedo',caja:'C9'},{k:'JMA',n:'Juan Manuel Alejandrino',caja:'C8'}];
+const CAJA_ADMIN={C9:'Admin Gonzalo',C8:'Admin Juan'};
+const yo=()=>ADMINS.find(x=>CFG&&x.k===CFG.user);
+let _u=null;
+function rUsers(){$('#s-user').innerHTML=ADMINS.map(x=>`<button class="chip ${_u===x.k?'on':''}" onclick="_u='${x.k}';rUsers()">${x.n}</button>`).join('')}
+function openSetup(){_u=CFG?CFG.user||null:null;rUsers();$('#s-api').value=CFG?CFG.api||'':'';$('#s-key').value=CFG?CFG.key||'':'';$('#s-cancel').style.display=CFG&&CFG.key&&CFG.user?'inline-block':'none';$('#m-setup').classList.add('on')}
 function closeM(){$('#m-setup').classList.remove('on')}
 function saveSetup(){const api=$('#s-api').value.trim(),key=$('#s-key').value.trim(); if(!/^https:\/\//.test(api)) return toast('Revisá la URL'); if(!key) return toast('Ingresá la clave');
-  CFG={api,key}; LS.set('pa_cfg',CFG); closeM(); cargar(true)}
+  if(!_u) return toast('Elegí quién sos');
+  CFG={api,key,user:_u}; LS.set('pa_cfg',CFG); closeM(); render(); cargar(true)}
 let _tt;function toast(t){const el=$('#toast');el.textContent=t;el.classList.add('on');clearTimeout(_tt);_tt=setTimeout(()=>el.classList.remove('on'),3000)}
 window.addEventListener('online',()=>cargar(false)); window.addEventListener('offline',render);
 document.addEventListener('visibilitychange',()=>{if(!document.hidden) cargar(false)});
 setInterval(()=>{if(!document.hidden) cargar(false)},30000);
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-render(); if(!CFG||!CFG.key) openSetup(); else cargar(false);
+render(); if(!CFG||!CFG.key||!CFG.user) openSetup(); else cargar(false);
 </script>
 </body>
 </html>
