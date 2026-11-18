@@ -198,7 +198,7 @@ input,select,textarea{font:inherit;font-size:16px;border:1px solid var(--line);b
 // ================= Básicos =================
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const fmt=n=>'$ '+Math.round(n||0).toLocaleString('es-AR');
-const USERS=[{k:'JMA',n:'Juan Manuel Alejandrino'},{k:'GSR',n:'Gonzalo Salcedo'}];
+const USERS=[{k:'JMA',n:'Juan Manuel Alejandrino'},{k:'GSR',n:'Gonzalo Salcedo'},{k:'IVN',n:'Iván'}];
 const RUBROS=['Carnes','Verdulería','Almacén','Panadería','Bebidas','Descartables','Gas / Carbón','Alquileres','Otros'];
 const MODOS=['Efectivo','Transferencia','Tarjeta','Consignación','A reintegrar'];
 const LS={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},

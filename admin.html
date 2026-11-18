@@ -228,8 +228,8 @@ async function cargar(manual){
   }catch(e){ if(manual) toast('No se pudo actualizar'); console.warn(e); }
   finally{ busy=false; render(); }
 }
-const ADMINS=[{k:'GSR',n:'Gonzalo Salcedo',caja:'C9'},{k:'JMA',n:'Juan Manuel Alejandrino',caja:'C8'}];
-const CAJA_ADMIN={C9:'Admin Gonzalo',C8:'Admin Juan'};
+const ADMINS=[{k:'GSR',n:'Gonzalo Salcedo',caja:'C9'},{k:'JMA',n:'Juan Manuel Alejandrino',caja:'C8'},{k:'IVN',n:'Iván',caja:'C7'}];
+const CAJA_ADMIN={C9:'Admin Gonzalo',C8:'Admin Juan',C7:'Admin Iván'};
 const yo=()=>ADMINS.find(x=>CFG&&x.k===CFG.user);
 let _u=null;
 function rUsers(){$('#s-user').innerHTML=ADMINS.map(x=>`<button class="chip ${_u===x.k?'on':''}" onclick="_u='${x.k}';rUsers()">${x.n}</button>`).join('')}
