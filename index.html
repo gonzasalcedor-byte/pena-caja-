@@ -110,6 +110,7 @@ label{font-size:12px;color:var(--muted);display:block;margin:10px 0 4px}
     <h1>🎸 Caja <span id="h-caja"></span></h1>
     <span class="pill" id="h-net"></span>
     <div class="sp"></div>
+    <button class="hbtn" id="h-panel" style="display:none" onclick="location.href='admin.html'">🎩</button>
     <button class="hbtn" onclick="sync(true)" id="h-sync">⟳</button>
     <button class="hbtn" onclick="openCierre()">📋</button>
     <button class="hbtn" onclick="openMenu()">☰</button>
@@ -255,9 +256,13 @@ if(navigator.storage&&navigator.storage.persist) navigator.storage.persist().cat
 const platos=()=>(DATA&&DATA.platos)||[];
 const precio=p=>st.liq?p.precioLiq:p.precio;
 const pendientes=()=>TK.filter(t=>!t.synced).length+CI.filter(c=>!c.synced).length;
+const esAdmin=()=>!!(CFG&&CFG.caja==='C9');
+// Quedan = lo que informa la planilla (control por turno o rinde total, ya con las ventas subidas de todas las cajas)
+//          menos las ventas de este teléfono que todavía no se subieron
 function quedan(p){
-  const local=TK.filter(t=>!t.synced&&!t.anulado).reduce((a,t)=>a+t.items.filter(i=>i.id===p.id).reduce((b,i)=>b+i.q,0),0);
-  return p.rinde?p.rinde-(p.vendidas||0)-local:null;
+  const local=TK.filter(t=>!t.synced&&!t.anulado&&(!p.desde||t.fecha>=p.desde)).reduce((a,t)=>a+t.items.filter(i=>i.id===p.id).reduce((b,i)=>b+i.q,0),0);
+  const base=(p.quedan!==undefined&&p.quedan!==null)?p.quedan:(p.rinde?p.rinde-(p.vendidas||0):null);
+  return base==null?null:base-local;
 }
 const cartItems=()=>Object.entries(st.cart).filter(([,q])=>q>0).map(([id,q])=>({p:platos().find(x=>x.id===id),q})).filter(x=>x.p);
 const cartTotal=()=>cartItems().reduce((a,{p,q})=>a+q*precio(p),0);
@@ -265,7 +270,8 @@ const now=()=>{const d=new Date(),z=n=>String(n).padStart(2,'0');return `${d.get
 
 // ================= Render =================
 function render(){
-  $('#h-caja').textContent=CFG?CFG.caja+(CFG.cajero?' · '+CFG.cajero:''):'';
+  $('#h-caja').textContent=CFG?(esAdmin()?'Admin':CFG.caja)+(CFG.cajero&&!esAdmin()?' · '+CFG.cajero:''):'';
+  $('#h-panel').style.display=esAdmin()?'inline-block':'none';
   const on=navigator.onLine, pend=pendientes();
   const net=$('#h-net'); net.className='pill '+(on?'on':'off');
   net.textContent=(st.syncing?'⟳ Sincronizando':(on?'● En línea':'● Sin señal'))+(pend?` · ${pend} por subir`:' · al día');
@@ -326,7 +332,8 @@ function chequearAvisos(){
 function addC(id){
   const p=platos().find(x=>x.id===id), r=quedan(p), q=st.cart[id]||0;
   if(r!=null&&r-q<=0&&!st.override?.[id]){
-    return confirmar('Sin porciones',`Según el sistema no quedan porciones de ${p.nombre}. Confirmá con la cocina antes de cobrar. ¿Agregar igual?`,null,()=>{st.override=st.override||{};st.override[id]=true;addC(id)});
+    if(!esAdmin()){ try{navigator.vibrate&&navigator.vibrate(300)}catch(e){} return toast(`⛔ ${p.nombre} agotado en este turno. Avisale al administrador para sumar porciones.`); }
+    return confirmar('Sin porciones (Caja Admin)',`Según el sistema no quedan porciones de ${p.nombre}. Como administrador podés vender igual; si en cocina hay más, mejor sumalas desde el panel. ¿Agregar igual?`,null,()=>{st.override=st.override||{};st.override[id]=true;addC(id)});
   }
   st.cart[id]=q+1;st.paga=null;render()}
 function decC(id){st.cart[id]=Math.max(0,(st.cart[id]||0)-1);st.paga=null;render()}
@@ -417,7 +424,7 @@ function pedirAnular(id){confirmar('Anular ticket',`¿Anular el ticket ${id}? Qu
 // ================= Menú, configuración, respaldo =================
 function openMenu(){$('#mn-info').innerHTML=`Caja <b>${CFG?CFG.caja:'—'}</b> · ${CFG&&CFG.cajero||'sin cajero'}<br>Tickets en este teléfono: ${TK.length} · por subir: ${pendientes()}<br>Última sincronización: ${DATA&&DATA.lastSync?new Date(DATA.lastSync).toLocaleString('es-AR'):'nunca'}`;$('#m-menu').classList.add('on')}
 function openSetup(){closeM('m-menu');const c=CFG||{caja:'C1',cajero:'',api:''};st._caja=c.caja;
-  $('#s-caja').innerHTML=['C1','C2'].map(k=>`<button class="chip ${st._caja===k?'on':''}" onclick="st._caja='${k}';openSetup()">${k}</button>`).join('');
+  $('#s-caja').innerHTML=(c.caja==='C9'?['C9']:['C1','C2']).map(k=>`<button class="chip ${st._caja===k?'on':''}" onclick="st._caja='${k}';openSetup()">${k==='C9'?'Caja Admin':k}</button>`).join('');
   if(!$('#m-setup').classList.contains('on')){$('#s-cajero').value=c.cajero;$('#s-api').value=c.api}
   $('#s-cancel').style.display=CFG&&CFG.api?'inline-block':'none';
   const pend=TK.some(t=>!t.synced&&t.caja!==st._caja); const w=$('#s-warn'); w.style.display=pend?'block':'none'; w.textContent=pend?'Hay ventas de la otra caja sin subir en este teléfono. Sincronizá antes de cambiar de caja.':'';
